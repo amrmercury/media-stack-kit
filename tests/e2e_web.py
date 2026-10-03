@@ -33,7 +33,8 @@ def shot(page, name):
 
 def start_server():
     srv = subprocess.Popen(["./install.sh", "--web", "--no-browser", "--state-dir", args.state_dir], cwd=ROOT,
-                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
+                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1,
+                           env={**os.environ, "PYTHONUNBUFFERED": "1"})
     logf = open(os.path.join(args.shots, "server.log"), "w")
     url, t0 = None, time.time()
     while url is None and time.time() - t0 < 300:

@@ -137,7 +137,7 @@ if [ "$UI" = web ] && [ -z "$ANSWERS" ]; then
   [ -n "$NOBROWSER" ] && ARGS+=(--no-browser)
   [ -n "$RECONFIGURE" ] && ARGS+=(--reconfigure)
   # the page collects the answers, then runs the same unattended install and shows its progress
-  exec python3 lib/webui.py "${ARGS[@]}"
+  exec python3 -u lib/webui.py "${ARGS[@]}"
 fi
 
 if [ -n "$ANSWERS" ]; then

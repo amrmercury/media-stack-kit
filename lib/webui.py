@@ -427,12 +427,12 @@ def main():
     port = srv.server_address[1]
     shown = "127.0.0.1" if a.host in ("127.0.0.1", "localhost") else hardware.lan_ip()
     url = f"http://{shown}:{port}/?t={app.token}"
-    print("\nInstaller is ready. Open this link in your browser:\n\n    " + url + "\n")
+    print("\nInstaller is ready. Open this link in your browser:\n\n    " + url + "\n", flush=True)
     if a.host not in ("127.0.0.1", "localhost"):
-        print("  (It is reachable from your network. Only share this link with yourself.)\n")
+        print("  (It is reachable from your network. Only share this link with yourself.)\n", flush=True)
     if not a.no_browser:
         threading.Timer(0.5, lambda: webbrowser.open(url)).start()
-    print("Leave this terminal open until the installer finishes. Press Ctrl+C to stop.")
+    print("Leave this terminal open until the installer finishes. Press Ctrl+C to stop.", flush=True)
     try:
         srv.serve_forever()
     except KeyboardInterrupt:

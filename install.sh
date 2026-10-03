@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
 # Media stack installer. Run as your normal user (not root):   ./install.sh
 #
-#   ./install.sh                       interactive: asks a few questions, then installs by itself
+#   ./install.sh                       asks a few questions (in your browser on a desktop, else in the terminal),
+#                                      then installs by itself
+#   ./install.sh --cli                 force the terminal questions
+#   ./install.sh --web [--no-browser]  force the browser page (prints a link; --no-browser = don't auto-open)
+#   ./install.sh --web --host 0.0.0.0  browser page reachable from another computer (e.g. when installing over SSH)
 #   ./install.sh --answers file.json   no questions (for repeat installs / testing)
 #   ./install.sh --reconfigure         re-apply your answers to the app config files
 #
@@ -18,14 +22,18 @@ ok()   { printf '%s\n' "${G}✔${N} $*"; }
 warn() { printf '%s\n' "${Y}!${N} $*"; }
 die()  { printf '%s\n' "${R}✘ $*${N}" >&2; exit 1; }
 
-ANSWERS=""; RECONFIGURE=""; STATE_DIR="$KIT/state"; FRESH=""
+ANSWERS=""; RECONFIGURE=""; STATE_DIR="$KIT/state"; FRESH=""; UI="auto"; NOBROWSER=""; UIHOST="127.0.0.1"
 while [ $# -gt 0 ]; do
   case "$1" in
     --answers)     ANSWERS="${2:?--answers needs a file}"; shift 2;;
     --reconfigure) RECONFIGURE="--reconfigure"; shift;;
     --state-dir)   STATE_DIR="${2:?}"; shift 2;;
     --fresh)       FRESH=1; shift;;
-    -h|--help)     sed -n '2,10p' "$0"; exit 0;;
+    --cli)         UI=cli; shift;;
+    --web)         UI=web; shift;;
+    --no-browser)  NOBROWSER=1; shift;;
+    --host)        UIHOST="${2:?--host needs an address}"; shift 2;;
+    -h|--help)     sed -n '2,14p' "$0"; exit 0;;
     *) die "Unknown option: $1 (try --help)";;
   esac
 done
@@ -113,6 +121,23 @@ ok "Docker $(docker --version | sed -E 's/Docker version ([^,]+).*/\1/')"
 # ---------------------------------------------------------------- questions
 mkdir -p "$STATE_DIR"
 ANS_FILE="$STATE_DIR/answers.json"
+
+# Browser page by default when this is a desktop session; terminal questions otherwise (e.g. over SSH).
+if [ "$UI" = auto ]; then
+  if [ -n "$ANSWERS" ]; then UI=cli
+  elif [ -n "${DISPLAY:-}${WAYLAND_DISPLAY:-}" ]; then UI=web
+  else UI=cli; fi
+fi
+
+if [ "$UI" = web ] && [ -z "$ANSWERS" ]; then
+  say "Starting the installer page"
+  ARGS=(--state-dir "$STATE_DIR" --host "$UIHOST")
+  [ -n "$NOBROWSER" ] && ARGS+=(--no-browser)
+  [ -n "$RECONFIGURE" ] && ARGS+=(--reconfigure)
+  # the page collects the answers, then runs the same unattended install and shows its progress
+  exec python3 lib/webui.py "${ARGS[@]}"
+fi
+
 if [ -n "$ANSWERS" ]; then
   python3 lib/wizard.py --answers "$ANSWERS" --out "$ANS_FILE"
 elif [ -f "$ANS_FILE" ] && [ -z "$FRESH" ] && [ -t 0 ]; then

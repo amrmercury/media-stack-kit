@@ -13,6 +13,10 @@ You do **not** get anyone's library, history or accounts: the library starts emp
 ./install.sh
 ```
 
+On a desktop it opens a **page in your browser** with the questions (and shows live progress while it installs). With no
+screen, for example over SSH, it asks in the terminal instead. Force either with `./install.sh --web` or `--cli`.
+To use the page from another computer: `./install.sh --web --host 0.0.0.0`, then open the link it prints.
+
 It asks a few questions up front, then runs by itself:
 
 1. **A username + password.** Used in *every* app (Jellyfin, Jellyseerr, Sonarr, Radarr, Prowlarr, Bazarr, decypharr).
@@ -69,6 +73,7 @@ Image versions are pinned to the exact builds this setup was tested with.
 ### For the person who maintains the kit
 
 ```bash
+node tests/test_ui_logic.js && python3 tests/test_webui.py   # installer-page tests (no Docker, no network)
 python3 tools/export_from_live.py          # snapshot your live settings into seed/ (secrets stripped)
 AUDIT_EXTRA=you@example.com python3 tools/audit_seed.py   # fails if ANY real secret/personal value is in the kit
 bash tools/package.sh                      # builds media-stack-kit.tar.gz (runs the audit first; omits tools/, state/)

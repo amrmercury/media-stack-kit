@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Media Stack Installer</title>
+<style>
+:root{--bg:#f5f6f8;--card:#fff;--ink:#1c2230;--mute:#667085;--line:#e3e6ec;--accent:#2f6fed;--accent-ink:#fff;--ok:#1f9d55;--bad:#d93025;--warn:#b7791f;--soft:#eef3ff;--code:#0f1420;--codeink:#d7dde8}
+@media (prefers-color-scheme:dark){:root{--bg:#10131a;--card:#181c26;--ink:#e8ebf2;--mute:#9aa3b5;--line:#2a3040;--accent:#6b9bff;--accent-ink:#0b1020;--ok:#3ecf7a;--bad:#ff6b60;--warn:#e3b04b;--soft:#1c2540;--code:#0b0e15;--codeink:#cfd6e4}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+header{padding:18px 20px 10px;max-width:880px;margin:0 auto}
+.brand{font-weight:700;font-size:18px;letter-spacing:.2px}
+#steps{display:flex;gap:6px;list-style:none;padding:0;margin:12px 0 0;flex-wrap:wrap}
+#steps li{font-size:12px;color:var(--mute);padding:4px 9px;border-radius:99px;border:1px solid var(--line);background:var(--card)}
+#steps li.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+#steps li.done{color:var(--ok);border-color:var(--ok)}
+main{max-width:880px;margin:0 auto;padding:6px 16px 60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 22px 18px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+h1{font-size:24px;margin:0 0 6px}
+h2{font-size:17px;margin:20px 0 8px}
+p{margin:8px 0}
+.lead{color:var(--mute);margin-top:0}
+.f{display:block;margin:14px 0}
+.f>span{display:block;font-weight:600;font-size:14px;margin-bottom:5px}
+input[type=text],input[type=number],select{width:100%;padding:11px 12px;font:inherit;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink)}
+input:focus,select:focus{outline:2px solid var(--accent);outline-offset:1px}
+.hint{display:block;font-size:13px;color:var(--mute);margin-top:5px}
+.row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.row>.f{flex:1;min-width:200px;margin:8px 0}
+button{font:inherit;cursor:pointer;border-radius:9px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:10px 16px}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+button.link{border:none;background:none;color:var(--accent);padding:4px 2px}
+button:disabled{opacity:.5;cursor:default}
+.nav{display:flex;justify-content:space-between;margin-top:22px;gap:10px}
+.err{background:rgba(217,48,37,.09);border:1px solid var(--bad);color:var(--bad);border-radius:10px;padding:10px 14px;margin:14px 0}
+.err ul{margin:4px 0 0 18px;padding:0}
+.note{background:var(--soft);border-radius:10px;padding:10px 14px;margin:12px 0;font-size:14px}
+.warnbox{border-left:4px solid var(--warn);background:rgba(183,121,31,.1);padding:8px 12px;border-radius:6px;font-size:14px;margin:8px 0}
+.opt{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:10px 0}
+.opt.sel{border-color:var(--accent);background:var(--soft)}
+.opt label.head{display:flex;gap:10px;align-items:flex-start;cursor:pointer;font-weight:600}
+.opt label.head small{display:block;font-weight:400;color:var(--mute)}
+.opt .body{margin-top:8px;padding-left:28px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin:10px 0}
+.drive{border:1px solid var(--line);border-radius:12px;padding:12px;text-align:left;background:var(--card)}
+.drive.sel{border-color:var(--accent);background:var(--soft)}
+.drive b{display:block}
+.drive small{color:var(--mute)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+td{padding:7px 4px;border-bottom:1px solid var(--line);vertical-align:top}
+td:first-child{color:var(--mute);width:34%}
+a{color:var(--accent)}
+code,.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:s 1s linear infinite;vertical-align:-2px}
+@keyframes s{to{transform:rotate(360deg)}}
+.prog{display:grid;grid-template-columns:240px 1fr;gap:16px}
+@media (max-width:700px){.prog{grid-template-columns:1fr}}
+.psteps{list-style:none;padding:0;margin:0}
+.psteps li{padding:6px 0;display:flex;gap:8px;font-size:14px}
+.psteps .ic{width:18px;text-align:center}
+.log{background:var(--code);color:var(--codeink);border-radius:10px;padding:12px;height:360px;overflow:auto;font:12.5px/1.45 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap}
+.log div{min-height:1.2em}.log .ok{color:#52d88a}.log .fail{color:#ff7a70}.log .warn{color:#e8c06a}.log .head{color:#8ab4ff;font-weight:700;margin-top:8px}
+.links{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin:12px 0}
+.links a{display:block;border:1px solid var(--line);border-radius:12px;padding:12px;text-decoration:none;color:var(--ink);background:var(--card)}
+.links a b{display:block;color:var(--accent)}
+.links a small{color:var(--mute)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:14px;z-index:5}
+.modal[hidden]{display:none}
+.mbox{background:var(--card);border-radius:14px;width:min(640px,100%);max-height:88vh;display:flex;flex-direction:column;padding:16px}
+.crumb{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;background:var(--bg);border-radius:8px;padding:8px 10px;word-break:break-all}
+.dirs{overflow:auto;border:1px solid var(--line);border-radius:10px;margin:10px 0;min-height:160px;max-height:300px}
+.dirs button{display:block;width:100%;text-align:left;border:none;border-bottom:1px solid var(--line);border-radius:0;background:none;padding:9px 12px}
+.dirs button:hover{background:var(--soft)}
+</style>
+</head>
+<body>
+<header><div class="brand">Media Stack Installer</div><ol id="steps"></ol></header>
+<main><section class="card" id="card">Loading…</section></main>
+
+<div class="modal" id="modal" hidden>
+  <div class="mbox">
+    <h2 style="margin-top:0">Choose a folder</h2>
+    <div class="crumb" id="crumb"></div>
+    <div class="dirs" id="dirs"></div>
+    <div class="row">
+      <label class="f" style="margin:0"><span>New folder here</span><input type="text" id="newname" placeholder="folder name" autocomplete="off"></label>
+      <button onclick="makeFolder()">Create</button>
+    </div>
+    <div id="merr" class="err" hidden></div>
+    <div class="nav"><button onclick="closePicker()">Cancel</button><button class="primary" id="usebtn" onclick="usePicked()">Use this folder</button></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+const TOKEN = "__TOKEN__";
+
+/* ============================================================ state + pure logic (unit-tested in Node) */
+const STEPS = ["Welcome", "Login", "Library", "Debrid", "Indexers", "Arabic", "Subtitles", "Cache", "Review"];
+const PROVIDERS = {
+  realdebrid: {label: "Real-Debrid", hint: "Get your key at real-debrid.com/apitoken", url: "https://real-debrid.com/apitoken"},
+  alldebrid:  {label: "AllDebrid",   hint: "Get your key at alldebrid.com/apikeys",     url: "https://alldebrid.com/apikeys"},
+  torbox:     {label: "TorBox",      hint: "Get your key at torbox.app/settings",       url: "https://torbox.app/settings"}
+};
+function freshState() {
+  return {
+    step: 0, hideSecrets: false, init: null, cache: null, cacheLoading: false,
+    admin_user: "", admin_pass: "",
+    library: {base: "", name: "Media"},
+    debrid: [{provider: "realdebrid", api_key: ""}],
+    arabtorrents: {on: false, username: "", password: ""},
+    arabicsource: {on: false, apikey: ""},
+    arabic: {on: false, username: "", password: "", tmdb: ""},
+    subs: {opensubtitlescom: {on: false, username: "", password: ""}, subsource: {on: false, apikey: ""}, subdl: {on: false, api_key: ""}},
+    cache_choice: -1, cache_size: 0
+  };
+}
+let S = freshState();
+
+function getv(path) { return path.split(".").reduce((o, k) => (o == null ? undefined : o[k]), S); }
+function setv(path, val) {
+  const ks = path.split("."), last = ks.pop();
+  const o = ks.reduce((o, k) => o[k], S);
+  o[last] = val;
+}
+function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c])); }
+
+function validateStep(i, st) {
+  st = st || S;
+  const e = [];
+  if (i === 1) {
+    if (!/^[A-Za-z0-9._-]{3,32}$/.test(st.admin_user)) e.push("Username: 3-32 characters, letters, numbers, dot, dash or underscore (no spaces or @).");
+    if ((st.admin_pass || "").length < 8) e.push("Password: use at least 8 characters.");
+  }
+  if (i === 2) {
+    if (!st.library.base) e.push("Choose where your library should live.");
+    if (!/^[A-Za-z0-9 ._-]{1,64}$/.test(st.library.name)) e.push("Folder name: letters, numbers, spaces, dot, dash or underscore.");
+  }
+  if (i === 3) {
+    if (!st.debrid.some(d => d.api_key.trim())) e.push("Add at least one debrid key.");
+  }
+  if (i === 4) {
+    const a = st.arabtorrents, b = st.arabicsource;
+    if (a.on && (!a.username.trim() || !a.password)) e.push("ArabTorrents: enter the username and password, or turn it off.");
+    if (b.on && !b.apikey.trim()) e.push("ArabicSource: enter the API key, or turn it off.");
+  }
+  if (i === 5) {
+    const a = st.arabic;
+    if (a.on && (!a.username.trim() || !a.password || !a.tmdb.trim())) e.push("Arabic series needs the ArabP2P username + password and a TMDB API key, or turn it off.");
+  }
+  if (i === 6) {
+    const s = st.subs;
+    if (s.opensubtitlescom.on && (!s.opensubtitlescom.username.trim() || !s.opensubtitlescom.password)) e.push("OpenSubtitles: enter your username and password, or turn it off.");
+    if (s.subsource.on && !s.subsource.apikey.trim()) e.push("Subsource: enter the API key, or turn it off.");
+    if (s.subdl.on && !s.subdl.api_key.trim()) e.push("SubDL: enter the API key, or turn it off.");
+  }
+  if (i === 7 && st.cache_choice >= 0 && st.cache) {
+    const c = st.cache.candidates[st.cache_choice];
+    const n = Number(st.cache_size);
+    if (!c) e.push("Pick a drive for the cache, or choose no cache.");
+    else if (!(n >= 5 && n <= Math.floor(c.free_gb))) e.push("Cache size: between 5 and " + Math.floor(c.free_gb) + " GB.");
+  }
+  return e;
+}
+
+function buildPayload(st) {
+  st = st || S;
+  const c = st.cache && st.cache_choice >= 0 ? st.cache.candidates[st.cache_choice] : null;
+  return {
+    admin_user: st.admin_user.trim(), admin_pass: st.admin_pass,
+    library: {base: st.library.base, name: st.library.name.trim()},
+    debrid: st.debrid.filter(d => d.api_key.trim()).map(d => ({provider: d.provider, api_key: d.api_key.trim()})),
+    arabtorrents: st.arabtorrents, arabicsource: st.arabicsource, arabic: st.arabic, subs: st.subs,
+    cache: c ? {dir: c.dir, size_gb: Number(st.cache_size)} : {}
+  };
+}
+
+function applySaved(saved, st) {
+  st = st || S;
+  if (!saved || !saved.admin_user) return false;
+  st.admin_user = saved.admin_user; st.admin_pass = saved.admin_pass || "";
+  const root = saved.media_root || "";
+  const i = root.lastIndexOf("/");
+  st.library = {base: i > 0 ? root.slice(0, i) : "/", name: i >= 0 ? root.slice(i + 1) : "Media"};
+  st.debrid = (saved.debrid || []).map(d => ({provider: d.provider, api_key: d.api_key}));
+  if (!st.debrid.length) st.debrid = [{provider: "realdebrid", api_key: ""}];
+  const ia = saved.indexer_accounts || {};
+  if (ia.arabtorrents) st.arabtorrents = {on: true, username: ia.arabtorrents.username, password: ia.arabtorrents.password};
+  if (ia.arabicsource) st.arabicsource = {on: true, apikey: ia.arabicsource.apikey};
+  if (saved.enable_arabarr && ia.arabp2p) st.arabic = {on: true, username: ia.arabp2p.username, password: ia.arabp2p.password, tmdb: saved.tmdb_api_key || ""};
+  const sb = saved.subtitles || {};
+  for (const k of Object.keys(st.subs)) if (sb[k]) st.subs[k] = Object.assign({on: true}, sb[k]);
+  return true;
+}
+
+/* ============================================================ API */
+async function api(path, body) {
+  const opt = {headers: {"X-Token": TOKEN}};
+  if (body !== undefined) { opt.method = "POST"; opt.headers["Content-Type"] = "application/json"; opt.body = JSON.stringify(body); }
+  const r = await fetch(path, opt);
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) { const e = new Error(j.error || (j.errors && j.errors.join(" ")) || ("HTTP " + r.status)); e.data = j; throw e; }
+  return j;
+}
+
+/* ============================================================ rendering */
+function secretInput(path, ph) {
+  return '<input type="' + (S.hideSecrets ? "password" : "text") + '" value="' + esc(getv(path)) + '" placeholder="' + esc(ph || "") +
+    '" oninput="setv(\'' + path + '\',this.value)" autocomplete="off" spellcheck="false">';
+}
+function textInput(path, ph) {
+  return '<input type="text" value="' + esc(getv(path)) + '" placeholder="' + esc(ph || "") + '" oninput="setv(\'' + path + '\',this.value)" autocomplete="off" spellcheck="false">';
+}
+function toggle(path, title, sub, bodyHtml) {
+  const on = getv(path + ".on");
+  return '<div class="opt' + (on ? " sel" : "") + '"><label class="head"><input type="checkbox" ' + (on ? "checked" : "") +
+    ' onchange="setv(\'' + path + '.on\',this.checked);render()"> <span>' + title + (sub ? "<small>" + sub + "</small>" : "") + "</span></label>" +
+    (on ? '<div class="body">' + bodyHtml + "</div>" : "") + "</div>";
+}
+function showHideBtn() {
+  return '<button class="link" onclick="S.hideSecrets=!S.hideSecrets;render()">' + (S.hideSecrets ? "Show what I type" : "Hide what I type") + "</button>";
+}
+function driveName(mount) { return mount === "/" ? "Main drive (/)" : mount; }
+function fullPath() { return S.library.base ? (S.library.base.replace(/\/$/, "") + "/" + S.library.name) : ""; }
+
+const PAGES = [
+  function welcome() {
+    const hw = S.init ? S.init.hw : null;
+    const net = hw ? (hw.nic.wired ? "wired" + (hw.nic.speed_mbps ? " " + hw.nic.speed_mbps + " Mbps" : "") : "Wi-Fi") : "";
+    return "<h1>Set up your media server</h1><p class='lead'>Answer a few questions. Then everything installs by itself: Jellyfin, requests, TV and movie automation, subtitles and a dashboard.</p>" +
+      (hw ? "<div class='note'><b>This computer:</b> " + esc(hw.cpu.model) + " · " + esc(hw.ram_gb) + " GB RAM · network: " + esc(net) +
+        "<br><span class='hint'>4K remux files are large (50-100+ Mbps): a wired connection is best, fast Wi-Fi also works. Playback is direct-play by default, so even an older CPU is fine.</span></div>" : "") +
+      (S.init && S.init.saved ? "<div class='opt sel'><b>You've run this installer before.</b><p class='hint'>Reuse your previous answers. You'll only re-confirm the cache and review them before installing.</p><button onclick='useSaved()'>Use my previous answers</button></div>" : "") +
+      "<h2>You'll need</h2><ul><li>A debrid account key (Real-Debrid, AllDebrid and/or TorBox)</li><li>Optional: subtitle accounts (OpenSubtitles, Subsource, SubDL)</li><li>Optional: an ArabP2P account and a TMDB key for Arabic series</li></ul>";
+  },
+  function login() {
+    return "<h1>Your login</h1><p class='lead'>One username and password for the whole stack (Jellyfin, Jellyseerr, Sonarr, Radarr, Prowlarr, Bazarr, decypharr). The installer sets it in every app for you.</p>" +
+      '<label class="f"><span>Username</span>' + textInput("admin_user", "e.g. alex") + '<small class="hint">3-32 characters: letters, numbers, dot, dash, underscore (no spaces or @).</small></label>' +
+      '<label class="f"><span>Password (you can see it as you type)</span>' + secretInput("admin_pass", "at least 8 characters") + "</label>" + showHideBtn();
+  },
+  function library() {
+    const drives = S.init ? S.init.drives : [];
+    const cards = drives.map((d, i) => '<button class="drive' + (S.library.base === d.path ? " sel" : "") + '" onclick="pickDrive(' + i + ')"><b>' + esc(d.label) + "</b><small>" +
+      esc(d.path) + "<br>" + esc(d.kind) + " · " + Math.round(d.free_gb) + " GB free</small></button>").join("");
+    return "<h1>Where should your library live?</h1><p class='lead'>Series and movies appear here as links to your debrid account, so this folder stays small. Pick the drive you want.</p>" +
+      '<div class="cards">' + cards + "</div>" +
+      '<button onclick="openPicker()">Browse for another folder…</button>' +
+      '<label class="f"><span>Folder name</span>' + textInput("library.name", "Media") + "</label>" +
+      (S.library.base ? "<div class='note'>Your library will be at: <code>" + esc(fullPath()) + "</code></div>" : "");
+  },
+  function debrid() {
+    const rows = S.debrid.map((d, i) => '<div class="row"><label class="f" style="max-width:190px"><span>Service</span><select onchange="setv(\'debrid.' + i + '.provider\',this.value);render()">' +
+      Object.keys(PROVIDERS).map(k => '<option value="' + k + '"' + (d.provider === k ? " selected" : "") + ">" + PROVIDERS[k].label + "</option>").join("") +
+      '</select></label><label class="f"><span>API key</span>' + secretInput("debrid." + i + ".api_key", "paste your key") + '<small class="hint">' + esc(PROVIDERS[d.provider].hint) +
+      '</small></label>' + (S.debrid.length > 1 ? '<button class="link" onclick="S.debrid.splice(' + i + ',1);render()">Remove</button>' : "") + "</div>").join("");
+    return "<h1>Debrid accounts</h1><p class='lead'>Real-Debrid, AllDebrid and TorBox are all supported. Add as many keys as you like, in any mix; the first is used first. You need at least one.</p>" +
+      rows + '<button onclick="S.debrid.push({provider:\'realdebrid\',api_key:\'\'});render()">+ Add another key</button> ' + showHideBtn();
+  },
+  function indexers() {
+    return "<h1>Other indexer accounts</h1><p class='lead'>Optional. Most indexers need nothing. These two Arabic private trackers need your own account on each site (membership rules are theirs). Leave them off to skip.</p>" +
+      toggle("arabtorrents", "ArabTorrents", "I have an account at arab-torrents.net",
+        '<label class="f"><span>Username</span>' + textInput("arabtorrents.username") + '</label><label class="f"><span>Password</span>' + secretInput("arabtorrents.password") + "</label>") +
+      toggle("arabicsource", "ArabicSource", "I have an account at arabicsource.net",
+        '<label class="f"><span>API key</span>' + secretInput("arabicsource.apikey") + '<small class="hint">On the site: My Settings → API Key tab.</small></label>');
+  },
+  function arabic() {
+    return "<h1>Arabic series (optional)</h1><p class='lead'>If you want Arabic series in your library, set up Arabarr. It needs <b>your own</b> free account on ArabP2P and a free API key from TMDB. Please don't share one person's tracker account: trackers can ban accounts that log in from several places.</p>" +
+      toggle("arabic", "Set up Arabarr", "Arabic series for Sonarr",
+        '<p><b>ArabP2P</b> · <a href="https://www.arabp2p.net/index.php?page=signup" target="_blank" rel="noopener">Sign up for free</a></p>' +
+        '<label class="f"><span>Username</span>' + textInput("arabic.username") + '</label><label class="f"><span>Password</span>' + secretInput("arabic.password") + "</label>" +
+        '<p><b>TMDB</b> · <a href="https://www.themoviedb.org/signup" target="_blank" rel="noopener">Sign up for free</a> · <a href="https://www.themoviedb.org/settings/api" target="_blank" rel="noopener">Create your API key</a></p>' +
+        '<label class="f"><span>TMDB API key</span>' + secretInput("arabic.tmdb") + "</label>");
+  },
+  function subtitles() {
+    return "<h1>Subtitles (English + Arabic)</h1><p class='lead'>Bazarr downloads subtitles from the providers you set up here. All are free to sign up. <b>OpenSubtitles free accounts are capped at 20 subtitles a day.</b> Subsource and SubDL have no daily limit and are the best Arabic sources, so all three is recommended. Skip them all and Bazarr stays connected to Sonarr and Radarr with no providers.</p>" +
+      toggle("subs.opensubtitlescom", "OpenSubtitles", "20 files/day (free) · Arabic ✓ · <a href='https://www.opensubtitles.com' target='_blank' rel='noopener'>Sign up for free</a>",
+        '<div class="warnbox">⚠ Use your account <b>USERNAME</b>, not your email address.</div><label class="f"><span>Username</span>' + textInput("subs.opensubtitlescom.username") +
+        '</label><label class="f"><span>Password</span>' + secretInput("subs.opensubtitlescom.password") + "</label>") +
+      toggle("subs.subsource", "Subsource", "No daily limit · best Arabic source ✓ · <a href='https://subsource.net' target='_blank' rel='noopener'>Sign up for free</a>",
+        '<label class="f"><span>API key</span>' + secretInput("subs.subsource.apikey") + '<small class="hint">Find it at the bottom of <a href="https://subsource.net/dashboard/profile" target="_blank" rel="noopener">your profile page</a>.</small></label>') +
+      toggle("subs.subdl", "SubDL", "No daily limit · Arabic ✓ · <a href='https://subdl.com' target='_blank' rel='noopener'>Sign up for free</a>",
+        '<label class="f"><span>API key</span>' + secretInput("subs.subdl.api_key") + '<small class="hint">Create it at <a href="https://subdl.com/panel/api" target="_blank" rel="noopener">subdl.com/panel/api</a>.</small></label>');
+  },
+  function cache() {
+    let body;
+    if (S.cacheLoading || !S.cache) body = "<p><span class='spin'></span> Checking your drives (this takes a few seconds)…</p>";
+    else if (!S.cache.candidates.length) body = "<div class='note'>No fast SSD with " + S.cache.min_free_gb + "+ GB free was found (a cache on a slow hard drive would compete with playback), so the cache stays off and the standard mount is used. Everything works normally.</div>";
+    else {
+      body = S.cache.candidates.map((c, i) => '<div class="opt' + (S.cache_choice === i ? " sel" : "") + '"><label class="head"><input type="radio" name="cc" ' + (S.cache_choice === i ? "checked" : "") +
+        ' onchange="S.cache_choice=' + i + ';S.cache_size=' + c.suggested_gb + ';render()"> <span>' + esc(driveName(c.mount)) + "<small>" + Math.round(c.free_gb) + " GB free" +
+        (c.iops ? " · " + c.iops + " random reads/s" : " · SSD") + " · would use up to " + c.suggested_gb + " GB</small></span></label>" +
+        (S.cache_choice === i ? '<div class="body"><label class="f"><span>Maximum cache size (GB)</span><input type="number" min="5" max="' + Math.floor(c.free_gb) + '" value="' + esc(S.cache_size) + '" oninput="S.cache_size=this.value"></label></div>' : "") + "</div>").join("") +
+        '<div class="opt' + (S.cache_choice < 0 ? " sel" : "") + '"><label class="head"><input type="radio" name="cc" ' + (S.cache_choice < 0 ? "checked" : "") +
+        ' onchange="S.cache_choice=-1;render()"> <span>No cache<small>Use the standard mount</small></span></label></div>';
+    }
+    return "<h1>Cache (optional speed-up)</h1><p class='lead'>A cache keeps recently watched files on a local drive so replays, seeking and several people watching at once stay smooth. Turning it on also switches your debrid mount to the faster DFS engine (tested: quicker cold reads, re-reads and seeks, better with several streams, far less RAM). It only helps on a fast SSD, so it's only offered when one is found. It fills as you watch, up to the limit, and cleans itself after 72 hours.</p>" + body;
+  },
+  function review() {
+    const row = (k, v, step) => "<tr><td>" + k + "</td><td>" + v + (step !== undefined ? ' <button class="link" onclick="go(' + step + ')">Change</button>' : "") + "</td></tr>";
+    const subs = Object.keys(S.subs).filter(k => S.subs[k].on).map(k => ({opensubtitlescom: "OpenSubtitles", subsource: "Subsource", subdl: "SubDL"}[k]));
+    const c = S.cache && S.cache_choice >= 0 ? S.cache.candidates[S.cache_choice] : null;
+    return "<h1>Review</h1><p class='lead'>Check everything, then start. It runs by itself from here.</p><table>" +
+      row("Login", esc(S.admin_user) + " / " + esc(S.admin_pass), 1) + row("Library", "<code>" + esc(fullPath()) + "</code>", 2) +
+      row("Debrid", esc(S.debrid.filter(d => d.api_key.trim()).map(d => PROVIDERS[d.provider].label).join(", ")), 3) +
+      row("Other indexers", esc([S.arabtorrents.on && "ArabTorrents", S.arabicsource.on && "ArabicSource"].filter(Boolean).join(", ") || "none"), 4) +
+      row("Arabic series", S.arabic.on ? "yes (Arabarr)" : "no", 5) + row("Subtitles", esc(subs.join(", ") || "skipped"), 6) +
+      row("Cache", c ? "up to " + esc(S.cache_size) + " GB on " + esc(driveName(c.mount)) + " (fast DFS mount)" : "off (standard mount)", 7) +
+      row("Settings in", "<code>~/media-stack</code> · timezone " + esc(S.init ? S.init.timezone : ""), undefined) + "</table>";
+  }
+];
+
+function render() {
+  const steps = document.getElementById("steps");
+  steps.innerHTML = STEPS.map((n, i) => '<li class="' + (S.step === i ? "on" : i < S.step ? "done" : "") + '">' + (i + 1) + ". " + n + "</li>").join("");
+  const e = S.errors && S.errors.length ? '<div class="err"><b>Please fix:</b><ul>' + S.errors.map(x => "<li>" + esc(x) + "</li>").join("") + "</ul></div>" : "";
+  const last = S.step === STEPS.length - 1;
+  document.getElementById("card").innerHTML = PAGES[S.step]() + e +
+    '<div class="nav"><button onclick="back()" ' + (S.step === 0 ? "disabled" : "") + '>Back</button>' +
+    (last ? '<button class="primary" onclick="startInstall()">Install</button>' : '<button class="primary" onclick="next()">' + (S.step === 0 ? "Start" : "Next") + "</button>") + "</div>";
+}
+function go(i) { S.errors = []; S.step = i; render(); if (i === 7) loadCache(); window.scrollTo(0, 0); }
+function back() { if (S.step > 0) go(S.step - 1); }
+function next() {
+  const e = validateStep(S.step);
+  if (e.length) { S.errors = e; render(); return; }
+  go(S.step + 1);
+}
+async function loadCache() {
+  if (S.cache || S.cacheLoading) return;
+  S.cacheLoading = true; render();
+  try { S.cache = await api("/api/cache"); } catch (e) { S.cache = {candidates: [], min_free_gb: 40}; }
+  S.cacheLoading = false; if (S.step === 7) render();
+}
+function useSaved() {
+  api("/api/saved").then(a => { if (applySaved(a)) { go(7); } });
+}
+
+/* ---- folder picker */
+let PICK = null;
+function pickDrive(i) { S.library.base = S.init.drives[i].path; render(); }
+async function openPicker() { document.getElementById("modal").hidden = false; await loadDir(S.library.base || (S.init && S.init.home) || "~"); }
+function closePicker() { document.getElementById("modal").hidden = true; }
+async function loadDir(p) {
+  try {
+    PICK = await api("/api/browse?path=" + encodeURIComponent(p));
+    document.getElementById("crumb").textContent = PICK.path + "  (" + Math.round(PICK.free_gb) + " GB free" + (PICK.writable ? "" : ", not writable") + ")";
+    const up = PICK.parent ? '<button onclick="loadDir(' + JSON.stringify(PICK.parent).replace(/"/g, "&quot;") + ')">⬆ ..</button>' : "";
+    document.getElementById("dirs").innerHTML = up + PICK.dirs.map(d => '<button onclick="loadDir(' +
+      JSON.stringify(PICK.path.replace(/\/$/, "") + "/" + d).replace(/"/g, "&quot;") + ')">📁 ' + esc(d) + "</button>").join("") +
+      (PICK.dirs.length ? "" : "<p class='hint' style='padding:0 12px'>No folders here.</p>");
+    document.getElementById("usebtn").disabled = !PICK.writable;
+    document.getElementById("merr").hidden = true;
+  } catch (e) { const m = document.getElementById("merr"); m.textContent = e.message; m.hidden = false; }
+}
+async function makeFolder() {
+  const name = document.getElementById("newname").value.trim();
+  try { const r = await api("/api/mkdir", {parent: PICK.path, name}); document.getElementById("newname").value = ""; await loadDir(r.path); }
+  catch (e) { const m = document.getElementById("merr"); m.textContent = e.message; m.hidden = false; }
+}
+function usePicked() { if (PICK && PICK.writable) { S.library.base = PICK.path; closePicker(); render(); } }
+
+/* ---- install + progress */
+let LOG = [], SINCE = 0, TIMER = null, LASTSTATUS = "idle";
+async function startInstall() {
+  S.errors = [];
+  try { await api("/api/start", buildPayload()); }
+  catch (e) { S.errors = (e.data && e.data.errors) || [e.message]; render(); return; }
+  showProgress();
+}
+function showProgress() {
+  LOG = []; SINCE = 0; LASTSTATUS = "running";
+  document.getElementById("steps").innerHTML = "";
+  document.getElementById("card").innerHTML = '<h1>Installing…</h1><p class="lead" id="pstat"><span class="spin"></span> This runs by itself. You can leave this page open and come back.</p><div class="prog"><ul class="psteps" id="psteps"></ul><div class="log" id="log"></div></div><div id="pend"></div>';
+  clearInterval(TIMER); TIMER = setInterval(poll, 1000); poll();
+}
+function stepsFromLog(lines) {
+  const out = [];
+  lines.forEach(l => {
+    if (l.t === "head") out.push({title: l.text, st: "run"});
+    else if (l.t === "fail" && out.length) out[out.length - 1].st = "fail";
+  });
+  out.forEach((s, i) => { if (s.st === "run" && i < out.length - 1) s.st = "ok"; });
+  return out;
+}
+async function poll() {
+  let r;
+  try { r = await api("/api/progress?since=" + SINCE); } catch (e) { return; }
+  SINCE = r.total; LOG = LOG.concat(r.lines);
+  const log = document.getElementById("log"); if (!log) return;
+  const near = log.scrollTop + log.clientHeight >= log.scrollHeight - 40;
+  log.innerHTML = LOG.map(l => '<div class="' + l.t + '">' + (l.t === "ok" ? "✔ " : l.t === "fail" ? "✘ " : l.t === "warn" ? "! " : l.t === "info" ? "• " : "") + esc(l.text) + "</div>").join("");
+  if (near) log.scrollTop = log.scrollHeight;
+  const steps = stepsFromLog(LOG), done = r.status === "done", failed = r.status === "failed";
+  document.getElementById("psteps").innerHTML = steps.map((s, i) => {
+    const last = i === steps.length - 1;
+    const ic = s.st === "fail" ? "✘" : (s.st === "ok" || (done && last)) ? "✔" : failed && last ? "✘" : '<span class="spin"></span>';
+    return '<li><span class="ic">' + ic + "</span><span>" + esc(s.title) + "</span></li>";
+  }).join("");
+  if (done || failed) { clearInterval(TIMER); finish(r, failed); }
+}
+function finish(r, failed) {
+  const stat = document.getElementById("pstat"), end = document.getElementById("pend");
+  if (failed) {
+    const msg = (LOG.filter(l => l.t === "fail").pop() || {}).text || "The installer stopped.";
+    document.querySelector("h1").textContent = "Something went wrong";
+    stat.innerHTML = '<span style="color:var(--bad)">✘ ' + esc(msg) + "</span>";
+    end.innerHTML = '<div class="note">Re-running is safe: nothing is duplicated. Fix the problem above (or just try again), or copy the log and send it to whoever shared this installer.</div>' +
+      '<div class="nav"><button onclick="copyLog()">Copy log</button><button class="primary" onclick="retry()">Try again</button></div>';
+    return;
+  }
+  const sm = r.summary || {urls: [], notes: [], user: ""};
+  document.querySelector("h1").textContent = "All done: installed, configured and verified";
+  stat.innerHTML = '<span style="color:var(--ok)">✔ Sign in everywhere with <b>' + esc(sm.user) + "</b> and the password you chose.</span>";
+  end.innerHTML = '<h2>Open your apps</h2><div class="links">' + sm.urls.map(u => '<a href="' + esc(u.url) + '" target="_blank" rel="noopener"><b>' + esc(u.name) + "</b><small>" + esc(u.desc) + "<br>" + esc(u.url) + "</small></a>").join("") + "</div>" +
+    "<h2>What's left for you</h2><ul>" + sm.notes.map(n => "<li>" + esc(n) + "</li>").join("") + "</ul>" +
+    '<div class="nav"><button onclick="copyLog()">Copy log</button><button class="primary" onclick="finishUi()">Finish</button></div>';
+}
+async function retry() { try { await api("/api/retry", {}); showProgress(); } catch (e) { alert(e.message); } }
+async function finishUi() { try { await api("/api/shutdown", {}); } catch (e) {} document.getElementById("card").innerHTML = "<h1>Finished</h1><p class='lead'>The installer has stopped. You can close this tab.</p>"; }
+function copyLog() {
+  const text = LOG.map(l => l.text).join("\n");
+  if (navigator.clipboard) navigator.clipboard.writeText(text).catch(() => {});
+}
+
+/* ---- boot (skipped when loaded outside a browser, e.g. by the Node unit tests) */
+async function boot() {
+  try {
+    S.init = await api("/api/init");
+    if (S.init.install && S.init.install !== "idle") { showProgress(); return; }
+  } catch (e) { document.getElementById("card").innerHTML = "<h1>Can't reach the installer</h1><p>Open the exact link printed in your terminal.</p>"; return; }
+  render();
+}
+if (typeof window !== "undefined" && typeof document !== "undefined" && document.getElementById) boot();
+</script>
+</body>
+</html>

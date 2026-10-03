@@ -191,12 +191,6 @@ def build_answers(p, hw):
     a["debrid"] = keys
 
     idx = {}
-    at = p.get("arabtorrents") or {}
-    if at.get("on"):
-        if not (at.get("username") or "").strip() or not at.get("password"):
-            errs.append("ArabTorrents: enter the username and password, or turn it off.")
-        else:
-            idx["arabtorrents"] = {"username": at["username"].strip(), "password": at["password"]}
     asrc = p.get("arabicsource") or {}
     if asrc.get("on"):
         if not (asrc.get("apikey") or "").strip():

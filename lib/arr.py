@@ -188,7 +188,6 @@ def seed_sonarr_radarr(app: Arr, kind, a, S, jellyfin_key, arabarr=None):
 # ------------------------------------------------------------------ Prowlarr
 PRIVATE_NEEDS = {          # indexer name -> (answers key, field map)
     "ArabP2P": ("arabp2p", {"username": "username", "password": "password"}),
-    "ArabTorrents": ("arabtorrents", {"username": "username", "password": "password"}),
     "ArabicSource (API)": ("arabicsource", {"apikey": "apikey"}),
 }
 DEBRID_LABEL = {"realdebrid": "real-debrid", "alldebrid": "alldebrid", "torbox": "torbox"}

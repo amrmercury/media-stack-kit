@@ -97,7 +97,7 @@ code,.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px}
 const TOKEN = "__TOKEN__";
 
 /* ============================================================ state + pure logic (unit-tested in Node) */
-const STEPS = ["Welcome", "Login", "Library", "Debrid", "Indexers", "Arabic", "Subtitles", "Cache", "Review"];
+const STEPS = ["Welcome", "Login", "Library", "Debrid", "ArabicSource", "Arabic", "Subtitles", "Cache", "Review"];
 const PROVIDERS = {
   realdebrid: {label: "Real-Debrid", hint: "Get your key at real-debrid.com/apitoken", url: "https://real-debrid.com/apitoken"},
   alldebrid:  {label: "AllDebrid",   hint: "Get your key at alldebrid.com/apikeys",     url: "https://alldebrid.com/apikeys"},
@@ -109,7 +109,6 @@ function freshState() {
     admin_user: "", admin_pass: "",
     library: {base: "", name: "Media"},
     debrid: [{provider: "realdebrid", api_key: ""}],
-    arabtorrents: {on: false, username: "", password: ""},
     arabicsource: {on: false, apikey: ""},
     arabic: {on: false, username: "", password: "", tmdb: ""},
     subs: {opensubtitlescom: {on: false, username: "", password: ""}, subsource: {on: false, apikey: ""}, subdl: {on: false, api_key: ""}},
@@ -141,8 +140,7 @@ function validateStep(i, st) {
     if (!st.debrid.some(d => d.api_key.trim())) e.push("Add at least one debrid key.");
   }
   if (i === 4) {
-    const a = st.arabtorrents, b = st.arabicsource;
-    if (a.on && (!a.username.trim() || !a.password)) e.push("ArabTorrents: enter the username and password, or turn it off.");
+    const b = st.arabicsource;
     if (b.on && !b.apikey.trim()) e.push("ArabicSource: enter the API key, or turn it off.");
   }
   if (i === 5) {
@@ -171,7 +169,7 @@ function buildPayload(st) {
     admin_user: st.admin_user.trim(), admin_pass: st.admin_pass,
     library: {base: st.library.base, name: st.library.name.trim()},
     debrid: st.debrid.filter(d => d.api_key.trim()).map(d => ({provider: d.provider, api_key: d.api_key.trim()})),
-    arabtorrents: st.arabtorrents, arabicsource: st.arabicsource, arabic: st.arabic, subs: st.subs,
+    arabicsource: st.arabicsource, arabic: st.arabic, subs: st.subs,
     cache: c ? {dir: c.dir, size_gb: Number(st.cache_size)} : {}
   };
 }
@@ -186,7 +184,6 @@ function applySaved(saved, st) {
   st.debrid = (saved.debrid || []).map(d => ({provider: d.provider, api_key: d.api_key}));
   if (!st.debrid.length) st.debrid = [{provider: "realdebrid", api_key: ""}];
   const ia = saved.indexer_accounts || {};
-  if (ia.arabtorrents) st.arabtorrents = {on: true, username: ia.arabtorrents.username, password: ia.arabtorrents.password};
   if (ia.arabicsource) st.arabicsource = {on: true, apikey: ia.arabicsource.apikey};
   if (saved.enable_arabarr && ia.arabp2p) st.arabic = {on: true, username: ia.arabp2p.username, password: ia.arabp2p.password, tmdb: saved.tmdb_api_key || ""};
   const sb = saved.subtitles || {};
@@ -258,9 +255,7 @@ const PAGES = [
       rows + '<button onclick="S.debrid.push({provider:\'realdebrid\',api_key:\'\'});render()">+ Add another key</button> ' + showHideBtn();
   },
   function indexers() {
-    return "<h1>Other indexer accounts</h1><p class='lead'>Optional. Most indexers need nothing. These two Arabic private trackers need your own account on each site (membership rules are theirs). Leave them off to skip.</p>" +
-      toggle("arabtorrents", "ArabTorrents", "I have an account at arab-torrents.net",
-        '<label class="f"><span>Username</span>' + textInput("arabtorrents.username") + '</label><label class="f"><span>Password</span>' + secretInput("arabtorrents.password") + "</label>") +
+    return "<h1>ArabicSource (optional)</h1><p class='lead'>Most indexers need nothing, and ArabTorrents works without an account, so it is simply switched on. ArabicSource needs an API key from your own account. Leave it off to skip.</p>" +
       toggle("arabicsource", "ArabicSource", "I have an account at arabicsource.net",
         '<label class="f"><span>API key</span>' + secretInput("arabicsource.apikey") + '<small class="hint">On the site: My Settings → API Key tab.</small></label>');
   },
@@ -303,7 +298,7 @@ const PAGES = [
     return "<h1>Review</h1><p class='lead'>Check everything, then start. It runs by itself from here.</p><table>" +
       row("Login", esc(S.admin_user) + " / " + esc(S.admin_pass), 1) + row("Library", "<code>" + esc(fullPath()) + "</code>", 2) +
       row("Debrid", esc(S.debrid.filter(d => d.api_key.trim()).map(d => PROVIDERS[d.provider].label).join(", ")), 3) +
-      row("Other indexers", esc([S.arabtorrents.on && "ArabTorrents", S.arabicsource.on && "ArabicSource"].filter(Boolean).join(", ") || "none"), 4) +
+      row("ArabicSource", S.arabicsource.on ? "yes" : "skipped", 4) +
       row("Arabic series", S.arabic.on ? "yes (Arabarr)" : "no", 5) + row("Subtitles", esc(subs.join(", ") || "skipped"), 6) +
       row("Cache", c ? "up to " + esc(S.cache_size) + " GB on " + esc(driveName(c.mount)) + " (fast DFS mount)" : "off (standard mount)", 7) +
       row("Settings in", "<code>~/media-stack</code> · timezone " + esc(S.init ? S.init.timezone : ""), undefined) + "</table>";

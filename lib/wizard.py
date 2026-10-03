@@ -199,14 +199,10 @@ def sec_debrid(a):
 
 
 def sec_indexers(a):
-    header("4/8  Other indexer accounts (optional)")
-    print("Most indexers need nothing. These two Arabic private trackers need your own account on each site\n"
-          "(membership rules are theirs). Press Enter to skip; a skipped indexer is simply left switched off.")
+    header("4/8  ArabicSource (optional)")
+    print("Most indexers need nothing (ArabTorrents works without an account, so it's simply on). ArabicSource needs an\n"
+          "API key from your own account. Press Enter to skip; a skipped indexer is simply left switched off.")
     idx = {}
-    print(f"\n{B}ArabTorrents{R}  {D}account at https://arab-torrents.net{R}")
-    u = ask("  Username (Enter to skip)", allow_empty=True)
-    if u:
-        idx["arabtorrents"] = {"username": u, "password": ask("  Password", secret=True)}
     print(f"\n{B}ArabicSource{R}  {D}account at https://arabicsource.net  (key: My Settings -> API Key tab){R}")
     k = ask("  API key (Enter to skip)", allow_empty=True, secret=True)
     if k:

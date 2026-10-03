@@ -54,7 +54,8 @@ test("optional sections only validate when switched on", () => {
   run("S.arabic.username='u'; S.arabic.password='p'; S.arabic.tmdb='k'"); assert.strictEqual(run("validateStep(5).length"), 0);
   run("S.subs.opensubtitlescom.on=true"); assert.strictEqual(run("validateStep(6).length"), 1);
   run("S.subs.opensubtitlescom.username='me'; S.subs.opensubtitlescom.password='pw'"); assert.strictEqual(run("validateStep(6).length"), 0);
-  run("S.arabtorrents.on=true"); assert.strictEqual(run("validateStep(4).length"), 1);
+  run("S.arabicsource.on=true"); assert.strictEqual(run("validateStep(4).length"), 1);
+  run("S.arabicsource.apikey='K'"); assert.strictEqual(run("validateStep(4).length"), 0);
 });
 
 test("cache choice: size must fit the drive", () => {
@@ -71,7 +72,7 @@ test("cache choice: size must fit the drive", () => {
 test("applySaved restores a previous answers file", () => {
   run("S = freshState()");
   const saved = {admin_user: "alex", admin_pass: "Passw0rd!123", media_root: "/mnt/data/Media", debrid: [{provider: "torbox", api_key: "K"}],
-    indexer_accounts: {arabp2p: {username: "ap", password: "pp"}, arabtorrents: {username: "at", password: "pw"}}, enable_arabarr: true, tmdb_api_key: "TM",
+    indexer_accounts: {arabp2p: {username: "ap", password: "pp"}, arabicsource: {apikey: "AS"}}, enable_arabarr: true, tmdb_api_key: "TM",
     subtitles: {subdl: {api_key: "SD"}}};
   assert.strictEqual(run("applySaved(" + JSON.stringify(saved) + ")"), true);
   assert.strictEqual(run("S.library.base"), "/mnt/data");
@@ -85,7 +86,7 @@ test("applySaved restores a previous answers file", () => {
 test("every page renders without errors, in several states, with no 'undefined'/'NaN'", () => {
   const states = [
     "S = freshState(); S.init=" + JSON.stringify(init),
-    "S = freshState(); S.init=" + JSON.stringify(init) + "; S.arabic.on=S.arabtorrents.on=S.arabicsource.on=true; for (const k in S.subs) S.subs[k].on=true; S.hideSecrets=true",
+    "S = freshState(); S.init=" + JSON.stringify(init) + "; S.arabic.on=S.arabicsource.on=true; for (const k in S.subs) S.subs[k].on=true; S.hideSecrets=true",
     "S = freshState(); S.init=" + JSON.stringify(init) + "; S.cacheLoading=true",
     "S = freshState(); S.init=" + JSON.stringify(init) + "; S.cache={candidates:[],min_free_gb:40}",
     "S = freshState(); S.init=" + JSON.stringify(init) + "; S.cache={candidates:[{mount:'/',dir:'/h',free_gb:400.4,iops:9000,suggested_gb:200}],min_free_gb:40}; S.cache_choice=0; S.cache_size=200; S.library.base='/home/u'; S.debrid=[{provider:'torbox',api_key:'K'},{provider:'alldebrid',api_key:'J'}]"

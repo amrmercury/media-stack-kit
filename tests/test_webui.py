@@ -77,7 +77,7 @@ def good_payload(tmp):
     lib = os.path.join(tmp, "lib"); os.makedirs(lib, exist_ok=True)
     return {"admin_user": "alex", "admin_pass": "Passw0rd!123", "library": {"base": lib, "name": "Media"},
             "debrid": [{"provider": "realdebrid", "api_key": "RDKEY"}, {"provider": "torbox", "api_key": "TBKEY"}],
-            "arabtorrents": {"on": False}, "arabicsource": {"on": False}, "arabic": {"on": False},
+            "arabicsource": {"on": False}, "arabic": {"on": False},
             "subs": {"opensubtitlescom": {"on": False}, "subsource": {"on": False}, "subdl": {"on": False}}, "cache": {}}
 
 
@@ -168,13 +168,13 @@ def build_answers_validates_everything_and_shapes_the_answers_file():
     assert errs == [] and a["debrid"] == [{"provider": "realdebrid", "api_key": "RDKEY"}, {"provider": "torbox", "api_key": "TBKEY"}]
     assert a["media_root"] == os.path.join(tmp, "lib", "Media") and a["enable_arabarr"] is False and a["cache"] == {"path": None}
     p["arabic"] = {"on": True, "username": "ap", "password": "pw", "tmdb": "TM"}
-    p["arabtorrents"] = {"on": True, "username": "at", "password": "x"}
+    p["arabicsource"] = {"on": True, "apikey": "AK"}
     p["subs"]["opensubtitlescom"] = {"on": True, "username": "me", "password": "pw"}
     p["subs"]["subsource"] = {"on": True, "apikey": "SK"}
     real_free, webui.free_gb = webui.free_gb, (lambda path: 100.0)       # the sandbox /tmp is small
     p["cache"] = {"dir": tmp, "size_gb": 10}
     a, errs = webui.build_answers(p, hw)
-    assert errs == [] and a["enable_arabarr"] and a["tmdb_api_key"] == "TM" and set(a["indexer_accounts"]) == {"arabp2p", "arabtorrents"}
+    assert errs == [] and a["enable_arabarr"] and a["tmdb_api_key"] == "TM" and set(a["indexer_accounts"]) == {"arabp2p", "arabicsource"}
     assert a["subtitles"] == {"opensubtitlescom": {"username": "me", "password": "pw"}, "subsource": {"apikey": "SK"}}
     assert a["cache"]["path"] == os.path.join(tmp, "media-stack-cache") and a["cache"]["size_gb"] == 10
     p["subs"]["subdl"] = {"on": True, "api_key": ""}; p["cache"] = {"dir": tmp, "size_gb": 10 ** 9}; p["debrid"] = []

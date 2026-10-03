@@ -64,12 +64,12 @@ def flow(page, srv, url):
 
     stage("login: wrong input first")
     page.get_by_role("button", name="Next").click()
-    expect(page.locator(".err")).to_contain_text("Username")
+    expect(page.locator("#card .err")).to_contain_text("Username")
     shot(page, "login-errors")
     page.get_by_label("Username").fill("ciuser")
     page.get_by_label("Password").fill("short")
     page.get_by_role("button", name="Next").click()
-    expect(page.locator(".err")).to_contain_text("at least 8")
+    expect(page.locator("#card .err")).to_contain_text("at least 8")
     page.get_by_label("Password").fill("Passw0rd!ci-test")
     assert page.get_by_label("Password").get_attribute("type") == "text", "password should be visible by default"
     page.get_by_role("button", name="Hide what I type").click()
@@ -81,7 +81,7 @@ def flow(page, srv, url):
 
     stage("library: folder browser")
     page.get_by_role("button", name="Next").click()
-    expect(page.locator(".err")).to_contain_text("library")
+    expect(page.locator("#card .err")).to_contain_text("library")
     page.get_by_role("button", name="Browse for another folder").click()
     expect(page.locator("#modal")).to_be_visible()
     page.locator("#newname").fill("bad/name")
@@ -98,7 +98,7 @@ def flow(page, srv, url):
 
     stage("debrid keys")
     page.get_by_role("button", name="Next").click()
-    expect(page.locator(".err")).to_contain_text("debrid key")
+    expect(page.locator("#card .err")).to_contain_text("debrid key")
     page.get_by_placeholder("paste your key").first.fill("FAKE" + "R" * 48)
     page.get_by_role("button", name="+ Add another key").click()
     page.locator("select").nth(1).select_option("torbox")
@@ -110,7 +110,7 @@ def flow(page, srv, url):
     box = page.locator(".opt", has_text="ArabicSource")
     box.locator("input[type=checkbox]").check()
     page.get_by_role("button", name="Next").click()
-    expect(page.locator(".err")).to_contain_text("ArabicSource")
+    expect(page.locator("#card .err")).to_contain_text("ArabicSource")
     box.locator("input[type=text]").fill("FAKEARABICSOURCEKEY")
     page.get_by_role("button", name="Next").click()
 
@@ -118,7 +118,7 @@ def flow(page, srv, url):
     box = page.locator(".opt", has_text="Set up Arabarr")
     box.locator("input[type=checkbox]").check()
     page.get_by_role("button", name="Next").click()
-    expect(page.locator(".err")).to_contain_text("Arabic series")
+    expect(page.locator("#card .err")).to_contain_text("Arabic series")
     fields = box.locator("input[type=text]")
     fields.nth(0).fill("cifake"); fields.nth(1).fill("fakepass1"); fields.nth(2).fill("0123456789abcdef0123456789abcdef")
     shot(page, "arabic")

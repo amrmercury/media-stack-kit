@@ -16,6 +16,16 @@ from jellyfin import Jellyfin
 from jellyseerr import Jellyseerr
 
 
+class Tee:
+    """Everything the installer prints is also appended to <state>/install.log, so a crash or shutdown can't lose it."""
+    def __init__(self, a, b): self.a, self.b = a, b
+    def write(self, t):
+        self.a.write(t); self.b.write(t); self.b.flush(); return len(t)
+    def flush(self): self.a.flush(); self.b.flush()
+    def isatty(self): return False
+    def __getattr__(self, k): return getattr(self.a, k)
+
+
 # ------------------------------------------------------------------ preflight
 def sudo_run(cmd):
     """Try without a password prompt first; the installer must never hang waiting on sudo."""
@@ -108,6 +118,10 @@ def main():
 
     a = json.load(open(args.answers))
     state_dir = args.state_dir
+    os.makedirs(state_dir, exist_ok=True)
+    logf = open(os.path.join(state_dir, "install.log"), "a", encoding="utf-8", buffering=1)
+    logf.write("\n===== install run started " + time.strftime("%Y-%m-%d %H:%M:%S") + " =====\n")
+    sys.stdout, sys.stderr = Tee(sys.stdout, logf), Tee(sys.stderr, logf)
     ports = {**render.DEFAULT_PORTS, **a.get("ports", {})}
     t0 = time.time()
 
@@ -228,6 +242,7 @@ if __name__ == "__main__":
         main()
     except StackError as e:
         fail(str(e))
+        print("\nIf you need help: run  ./install.sh --diag  and send the file it writes (~/media-stack-diag.txt).")
         sys.exit(1)
     except KeyboardInterrupt:
         print("\nInterrupted. Re-running the installer is safe.")

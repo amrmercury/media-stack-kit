@@ -1,0 +1,88 @@
+name: test
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    name: unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: "22"}
+      - run: node tests/test_ui_logic.js
+      - run: python3 tests/test_webui.py
+      - run: python3 -m py_compile lib/*.py tools/*.py
+      - run: bash -n install.sh && bash -n stack.sh && bash -n diag.sh
+      - run: shellcheck -S warning install.sh stack.sh diag.sh tests/ci_diag.sh || true
+
+  install:
+    name: full install (${{ matrix.case }})
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        case: [basic, full]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fake answers
+        run: python3 tests/ci_answers.py ${{ matrix.case }} "$RUNNER_TEMP/answers.json"
+      - name: Install, first run (clean machine)
+        shell: bash
+        run: ./install.sh --answers "$RUNNER_TEMP/answers.json" --state-dir "$RUNNER_TEMP/state" 2>&1 | tee "$RUNNER_TEMP/run1.log"
+      - name: Install again (must be safe and change nothing)
+        shell: bash
+        run: ./install.sh --answers "$RUNNER_TEMP/answers.json" --state-dir "$RUNNER_TEMP/state" 2>&1 | tee "$RUNNER_TEMP/run2.log"
+      - name: Take everything down, then install again (the restart / dead-mount case)
+        shell: bash
+        run: |
+          export STACK_STATE_DIR="$RUNNER_TEMP/state"
+          ./stack.sh down
+          ./install.sh --answers "$RUNNER_TEMP/answers.json" --state-dir "$RUNNER_TEMP/state" 2>&1 | tee "$RUNNER_TEMP/run3.log"
+      - name: Resource use
+        if: always()
+        run: docker stats --no-stream || true
+      - name: The --diag command works
+        shell: bash
+        run: STACK_STATE_DIR="$RUNNER_TEMP/state" ./install.sh --diag | head -30
+      - name: Collect diagnostics
+        if: always()
+        run: bash tests/ci_diag.sh diag "$RUNNER_TEMP/state"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: diag-install-${{ matrix.case }}
+          path: diag
+          retention-days: 7
+
+  web-ui:
+    name: installer page, real browser, real install
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install playwright && playwright install --with-deps chromium
+      - name: Click through the page and install
+        shell: bash
+        run: python3 tests/e2e_web.py --state-dir "$RUNNER_TEMP/state-ui" --shots shots
+      - name: Collect diagnostics
+        if: always()
+        run: bash tests/ci_diag.sh diag "$RUNNER_TEMP/state-ui"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: web-ui
+          path: |
+            shots
+            diag
+          retention-days: 7

@@ -60,7 +60,6 @@ class Install:
             if self.status == "running":
                 return False
             self.status, self.code, self.lines = "running", None, []
-        log_path = os.path.join(cmd[cmd.index("--state-dir") + 1], "install.log") if "--state-dir" in cmd else None
         try:
             self.proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1,
                                          env=env, cwd=KIT)
@@ -69,26 +68,16 @@ class Install:
             with self.lock:
                 self.status, self.code = "failed", -1
             return True
-        threading.Thread(target=self._pump, args=(log_path,), daemon=True).start()
+        threading.Thread(target=self._pump, daemon=True).start()
         return True
 
-    def _pump(self, log_path):
-        logf = None
-        try:
-            if log_path:
-                logf = open(log_path, "a", encoding="utf-8")
-        except OSError:
-            logf = None
+    def _pump(self):
         for line in self.proc.stdout:
             self.add(line)
-            if logf:
-                logf.write(ANSI.sub("", line)); logf.flush()
         code = self.proc.wait()
         with self.lock:
             self.code = code
             self.status = "done" if code == 0 else "failed"
-        if logf:
-            logf.close()
 
     def snapshot(self, since):
         with self.lock:

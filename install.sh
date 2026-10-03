@@ -6,6 +6,7 @@
 #   ./install.sh --cli                 force the terminal questions
 #   ./install.sh --web [--no-browser]  force the browser page (prints a link; --no-browser = don't auto-open)
 #   ./install.sh --web --host 0.0.0.0  browser page reachable from another computer (e.g. when installing over SSH)
+#   ./install.sh --diag                collect what's needed to debug a failed install into ~/media-stack-diag.txt
 #   ./install.sh --answers file.json   no questions (for repeat installs / testing)
 #   ./install.sh --reconfigure         re-apply your answers to the app config files
 #
@@ -29,11 +30,12 @@ while [ $# -gt 0 ]; do
     --reconfigure) RECONFIGURE="--reconfigure"; shift;;
     --state-dir)   STATE_DIR="${2:?}"; shift 2;;
     --fresh)       FRESH=1; shift;;
+    --diag)        exec bash "$KIT/diag.sh";;
     --cli)         UI=cli; shift;;
     --web)         UI=web; shift;;
     --no-browser)  NOBROWSER=1; shift;;
     --host)        UIHOST="${2:?--host needs an address}"; shift 2;;
-    -h|--help)     sed -n '2,14p' "$0"; exit 0;;
+    -h|--help)     sed -n '2,16p' "$0"; exit 0;;
     *) die "Unknown option: $1 (try --help)";;
   esac
 done

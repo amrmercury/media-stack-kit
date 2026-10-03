@@ -1,0 +1,18 @@
+[
+  {
+    "configContract": "FlareSolverrSettings",
+    "fields": {
+      "host": "http://flaresolverr:8191/",
+      "requestTimeout": 60
+    },
+    "implementation": "FlareSolverr",
+    "implementationName": "FlareSolverr",
+    "includeHealthWarnings": false,
+    "name": "FlareSolverr",
+    "onHealthIssue": false,
+    "supportsOnHealthIssue": false,
+    "tags": [
+      "flaresolverr"
+    ]
+  }
+]

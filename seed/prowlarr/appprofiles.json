@@ -1,0 +1,9 @@
+[
+  {
+    "enableAutomaticSearch": true,
+    "enableInteractiveSearch": true,
+    "enableRss": true,
+    "minimumSeeders": 1,
+    "name": "Standard"
+  }
+]

@@ -1,0 +1,13 @@
+---
+title: Media Server
+headerStyle: boxed
+layout:
+  Media:
+    style: row
+    columns: 3
+  Automation:
+    style: row
+    columns: 4
+  Downloads:
+    style: row
+    columns: 2

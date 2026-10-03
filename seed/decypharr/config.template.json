@@ -1,0 +1,228 @@
+{
+  "allowed_file_types": [
+    "3gp",
+    "ac3",
+    "aiff",
+    "alac",
+    "amr",
+    "ape",
+    "asf",
+    "asx",
+    "avc",
+    "avi",
+    "bin",
+    "bivx",
+    "dat",
+    "divx",
+    "dts",
+    "dv",
+    "dvr-ms",
+    "flac",
+    "fli",
+    "flv",
+    "ifo",
+    "m2ts",
+    "m2v",
+    "m3u",
+    "m4a",
+    "m4p",
+    "m4v",
+    "mid",
+    "midi",
+    "mk3d",
+    "mka",
+    "mkv",
+    "mov",
+    "mp2",
+    "mp3",
+    "mp4",
+    "mpa",
+    "mpeg",
+    "mpg",
+    "nrg",
+    "nsv",
+    "nuv",
+    "ogg",
+    "ogm",
+    "ogv",
+    "pva",
+    "qt",
+    "ra",
+    "rm",
+    "rmvb",
+    "strm",
+    "svq3",
+    "ts",
+    "ty",
+    "viv",
+    "vob",
+    "voc",
+    "vp3",
+    "wav",
+    "webm",
+    "wma",
+    "wmv",
+    "wpl",
+    "wtv",
+    "wv",
+    "xvid"
+  ],
+  "arrs": [
+    {
+      "download_uncached": true,
+      "host": "http://sonarr:8989",
+      "name": "sonarr",
+      "token": "__TOKEN__"
+    },
+    {
+      "download_uncached": true,
+      "host": "http://radarr:7878",
+      "name": "radarr",
+      "token": "__TOKEN__"
+    }
+  ],
+  "bind_address": "0.0.0.0",
+  "categories": [
+    "sonarr",
+    "radarr"
+  ],
+  "debrids": [],
+  "default_download_action": "symlink",
+  "download_folder": "/mnt/symlinks",
+  "folder_naming": "original_no_ext",
+  "log_level": "info",
+  "max_active_downloads": 5,
+  "mount": {
+    "dfs": {
+      "cache_cleanup_interval": "1h",
+      "cache_dir": "/app/cache/dfs",
+      "cache_expiry": "72h",
+      "chunk_size": "10MB",
+      "disk_cache_size": "200GB"
+    },
+    "external_rclone": {},
+    "mount_path": "/mnt/decypharr",
+    "rclone": {
+      "async_read": true,
+      "attr_timeout": "1s",
+      "buffer_size": "64M",
+      "cache_dir": "/app/cache/rclone",
+      "dir_cache_time": "72h",
+      "log_level": "INFO",
+      "port": "5572",
+      "vfs_cache_max_age": "72h",
+      "vfs_cache_max_size": "200G",
+      "vfs_cache_mode": "full",
+      "vfs_cache_poll_interval": "1m",
+      "vfs_read_ahead": "64M",
+      "vfs_read_chunk_size": "32M",
+      "vfs_read_chunk_size_limit": "1G"
+    },
+    "type": "dfs"
+  },
+  "nfs": {
+    "allowed_networks": [
+      "127.0.0.0/8",
+      "10.0.0.0/8",
+      "172.16.0.0/12",
+      "192.168.0.0/16",
+      "::1/128",
+      "fc00::/7",
+      "fe80::/10"
+    ],
+    "bind_address": "0.0.0.0",
+    "port": 20490
+  },
+  "notifications": {},
+  "port": "8282",
+  "queue_cleanup": {
+    "rules": [
+      {
+        "action": "blacklist_research",
+        "id": "failed_download",
+        "match": "Failed download"
+      },
+      {
+        "action": "import",
+        "id": "title_mismatch",
+        "match": "Title mismatch; automatic import is not possible"
+      },
+      {
+        "action": "import",
+        "id": "matched_by_id",
+        "match": "Matched to series/movie by ID"
+      },
+      {
+        "action": "blacklist_research",
+        "id": "unable_to_parse",
+        "match": "Unable to parse download"
+      },
+      {
+        "action": "blacklist_research",
+        "id": "no_eligible_files",
+        "match": "No files found are eligible for import"
+      },
+      {
+        "action": "import",
+        "id": "episodes_missing",
+        "match": "Episodes not imported or missing from the release"
+      },
+      {
+        "action": "blacklist_research",
+        "id": "file_empty",
+        "match": "Downloaded file is empty"
+      },
+      {
+        "id": "invalid_local_path",
+        "match": "Not a valid local path (remote path mapping)"
+      },
+      {
+        "id": "not_grabbed",
+        "match": "Not grabbed by the arr / no category"
+      }
+    ]
+  },
+  "refresh_interval": "30s",
+  "remove_stalled_after": "2h",
+  "repair": {
+    "auto_repair": true,
+    "enabled": true,
+    "nntp_connection_percent": 20,
+    "recheck_interval": "24h",
+    "schedule": "0 */4 * * *",
+    "source": "arr",
+    "strategy": "per_entry",
+    "workers": 5
+  },
+  "retries": 3,
+  "share_cache": {
+    "enabled": false
+  },
+  "smb": {
+    "allowed_networks": [
+      "127.0.0.0/8",
+      "10.0.0.0/8",
+      "172.16.0.0/12",
+      "192.168.0.0/16",
+      "::1/128",
+      "fc00::/7",
+      "fe80::/10"
+    ],
+    "bind_address": "0.0.0.0",
+    "port": 1445,
+    "share_name": "decypharr"
+  },
+  "url_base": "/",
+  "use_auth": true,
+  "usenet": {
+    "availability_sample_percent": 10,
+    "disk_buffer_path": "/app/usenet/streams",
+    "import_availability_sample_percent": 1,
+    "max_connections": 15,
+    "processing_max_connections": 15,
+    "processing_timeout": "10m",
+    "read_ahead": "16MB",
+    "socket_read_buffer": "4MB",
+    "socket_write_buffer": "1MB"
+  }
+}

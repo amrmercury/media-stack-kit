@@ -1,0 +1,64 @@
+[
+  {
+    "configContract": "MediaBrowserMetadataSettings",
+    "enable": false,
+    "fields": {
+      "movieMetadata": true
+    },
+    "implementation": "MediaBrowserMetadata",
+    "implementationName": "Emby (Legacy)",
+    "name": "Emby (Legacy)",
+    "tags": []
+  },
+  {
+    "configContract": "XbmcMetadataSettings",
+    "enable": false,
+    "fields": {
+      "addCollectionName": true,
+      "movieImages": true,
+      "movieMetadata": true,
+      "movieMetadataLanguage": 1,
+      "movieMetadataURL": false,
+      "useMovieNfo": false
+    },
+    "implementation": "XbmcMetadata",
+    "implementationName": "Kodi (XBMC) / Emby",
+    "name": "Kodi (XBMC) / Emby",
+    "tags": []
+  },
+  {
+    "configContract": "KometaMetadataSettings",
+    "enable": false,
+    "fields": {
+      "deprecated": true
+    },
+    "implementation": "KometaMetadata",
+    "implementationName": "Kometa",
+    "name": "Kometa",
+    "tags": []
+  },
+  {
+    "configContract": "RoksboxMetadataSettings",
+    "enable": false,
+    "fields": {
+      "movieImages": true,
+      "movieMetadata": true
+    },
+    "implementation": "RoksboxMetadata",
+    "implementationName": "Roksbox",
+    "name": "Roksbox",
+    "tags": []
+  },
+  {
+    "configContract": "WdtvMetadataSettings",
+    "enable": false,
+    "fields": {
+      "movieImages": true,
+      "movieMetadata": true
+    },
+    "implementation": "WdtvMetadata",
+    "implementationName": "WDTV",
+    "name": "WDTV",
+    "tags": []
+  }
+]

@@ -1,0 +1,25 @@
+{
+  "applicationTitle": "Jellyseerr",
+  "applicationUrl": "",
+  "blacklistedTags": "",
+  "blacklistedTagsLimit": 50,
+  "cacheImages": false,
+  "defaultPermissions": 32,
+  "defaultQuotas": {
+    "movie": {},
+    "tv": {}
+  },
+  "discoverRegion": "",
+  "enableSpecialEpisodes": false,
+  "hideAvailable": false,
+  "hideBlacklisted": false,
+  "localLogin": true,
+  "locale": "en",
+  "mediaServerLogin": true,
+  "mediaServerType": 2,
+  "newPlexLogin": true,
+  "originalLanguage": "",
+  "partialRequestsEnabled": true,
+  "streamingRegion": "",
+  "youtubeUrl": ""
+}

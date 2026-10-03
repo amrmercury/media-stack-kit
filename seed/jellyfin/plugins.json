@@ -1,0 +1,62 @@
+[
+  {
+    "Id": "a629c0dafac54c7e931a7174223f14c8",
+    "Name": "AudioDB",
+    "Status": "Active",
+    "Version": "10.11.11.0"
+  },
+  {
+    "Id": "c83d86bba1e04c35a113e2101cf4ee6b",
+    "Name": "Intro Skipper",
+    "Status": "Active",
+    "Version": "1.10.11.23"
+  },
+  {
+    "Id": "8c5d0e914f2a4b6d9e3f1a7c8d9e0f2b",
+    "Name": "Moonbase",
+    "Status": "Active",
+    "Version": "2.3.0.0"
+  },
+  {
+    "Id": "8c95c4d2e50c4fb0a4f36c06ff0f9a1a",
+    "Name": "MusicBrainz",
+    "Status": "Active",
+    "Version": "10.11.11.0"
+  },
+  {
+    "Id": "a628c0dafac54c7e9d1a7134223f14c8",
+    "Name": "OMDb",
+    "Status": "Active",
+    "Version": "10.11.11.0"
+  },
+  {
+    "Id": "4b9ed42f518548b598036ff2989014c4",
+    "Name": "Open Subtitles",
+    "Status": "Active",
+    "Version": "24.0.0.0"
+  },
+  {
+    "Id": "a0a2a7b2747a41138b39757a9d267c79",
+    "Name": "SmartLists",
+    "Status": "Active",
+    "Version": "12.0.1.0"
+  },
+  {
+    "Id": "872a78491171458da6fb3de3d442ad30",
+    "Name": "Studio Images",
+    "Status": "Active",
+    "Version": "10.11.11.0"
+  },
+  {
+    "Id": "e41ef0c4c41341bab4fa8c565dc3c969",
+    "Name": "Themerr",
+    "Status": "Active",
+    "Version": "2026.601.2038.13"
+  },
+  {
+    "Id": "b8715ed16c4745289ad3f72deb539cd4",
+    "Name": "TMDb",
+    "Status": "Active",
+    "Version": "10.11.11.0"
+  }
+]

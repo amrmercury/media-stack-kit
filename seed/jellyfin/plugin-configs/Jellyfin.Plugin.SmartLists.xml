@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PluginConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <DefaultSortBy>NoOrder</DefaultSortBy>
+  <DefaultSortOrder>Ascending</DefaultSortOrder>
+  <DefaultListType>Playlist</DefaultListType>
+  <DefaultMakePublic>false</DefaultMakePublic>
+  <DefaultHideWhenEmpty>true</DefaultHideWhenEmpty>
+  <ShowSmartListBadge>true</ShowSmartListBadge>
+  <DefaultMaxItems>500</DefaultMaxItems>
+  <DefaultMaxPlayTimeMinutes>0</DefaultMaxPlayTimeMinutes>
+  <PlaylistNamePrefix />
+  <PlaylistNameSuffix>[Smart]</PlaylistNameSuffix>
+  <DefaultAutoRefresh>OnLibraryChanges</DefaultAutoRefresh>
+  <DefaultScheduleTrigger xsi:nil="true" />
+  <DefaultScheduleTime>PT0S</DefaultScheduleTime>
+  <DefaultScheduleDayOfWeek>Sunday</DefaultScheduleDayOfWeek>
+  <DefaultScheduleDayOfMonth>1</DefaultScheduleDayOfMonth>
+  <DefaultScheduleMonth>1</DefaultScheduleMonth>
+  <DefaultScheduleInterval>PT15M</DefaultScheduleInterval>
+  <ProcessingBatchSize>300</ProcessingBatchSize>
+  <EnableUserPage>true</EnableUserPage>
+  <UserAgentMode>Default</UserAgentMode>
+  <BackupEnabled>false</BackupEnabled>
+  <BackupRetentionCount>7</BackupRetentionCount>
+</PluginConfiguration>

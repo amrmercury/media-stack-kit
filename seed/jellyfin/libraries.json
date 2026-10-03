@@ -1,0 +1,212 @@
+[
+  {
+    "CollectionType": "tvshows",
+    "LibraryOptions": {
+      "AllowEmbeddedSubtitles": "AllowAll",
+      "AutomaticRefreshIntervalDays": 0,
+      "AutomaticallyAddToCollection": false,
+      "CustomTagDelimiters": [
+        "/",
+        "|",
+        ";",
+        "\\"
+      ],
+      "DelimiterWhitelist": [],
+      "DisabledLocalMetadataReaders": [],
+      "DisabledLyricFetchers": [],
+      "DisabledMediaSegmentProviders": [],
+      "DisabledSubtitleFetchers": [],
+      "EnableAutomaticSeriesGrouping": false,
+      "EnableChapterImageExtraction": false,
+      "EnableEmbeddedEpisodeInfos": false,
+      "EnableEmbeddedExtrasTitles": false,
+      "EnableEmbeddedTitles": false,
+      "EnableInternetProviders": false,
+      "EnableLUFSScan": true,
+      "EnablePhotos": true,
+      "EnableRealtimeMonitor": true,
+      "EnableTrickplayImageExtraction": true,
+      "Enabled": true,
+      "ExtractChapterImagesDuringLibraryScan": false,
+      "ExtractTrickplayImagesDuringLibraryScan": true,
+      "LocalMetadataReaderOrder": [
+        "Nfo"
+      ],
+      "LyricFetcherOrder": [],
+      "MediaSegmentProviderOrder": [
+        "Intro Skipper"
+      ],
+      "MetadataCountryCode": "",
+      "MetadataSavers": [],
+      "PreferNonstandardArtistsTag": false,
+      "PreferredMetadataLanguage": "",
+      "RequirePerfectSubtitleMatch": true,
+      "SaveLocalMetadata": false,
+      "SaveLyricsWithMedia": false,
+      "SaveSubtitlesWithMedia": true,
+      "SaveTrickplayWithMedia": false,
+      "SeasonZeroDisplayName": "Specials",
+      "SkipSubtitlesIfAudioTrackMatches": false,
+      "SkipSubtitlesIfEmbeddedSubtitlesPresent": false,
+      "SubtitleDownloadLanguages": [
+        "ara"
+      ],
+      "SubtitleFetcherOrder": [
+        "Open Subtitles"
+      ],
+      "TypeOptions": [
+        {
+          "ImageFetcherOrder": [
+            "TheMovieDb"
+          ],
+          "ImageFetchers": [
+            "TheMovieDb"
+          ],
+          "ImageOptions": [],
+          "MetadataFetcherOrder": [
+            "TheMovieDb",
+            "The Open Movie Database"
+          ],
+          "MetadataFetchers": [
+            "TheMovieDb",
+            "The Open Movie Database"
+          ],
+          "Type": "Series"
+        },
+        {
+          "ImageFetcherOrder": [
+            "TheMovieDb"
+          ],
+          "ImageFetchers": [
+            "TheMovieDb"
+          ],
+          "ImageOptions": [],
+          "MetadataFetcherOrder": [
+            "TheMovieDb"
+          ],
+          "MetadataFetchers": [
+            "TheMovieDb"
+          ],
+          "Type": "Season"
+        },
+        {
+          "ImageFetcherOrder": [
+            "TheMovieDb",
+            "The Open Movie Database",
+            "Embedded Image Extractor",
+            "Screen Grabber"
+          ],
+          "ImageFetchers": [
+            "TheMovieDb",
+            "The Open Movie Database",
+            "Embedded Image Extractor",
+            "Screen Grabber"
+          ],
+          "ImageOptions": [],
+          "MetadataFetcherOrder": [
+            "TheMovieDb",
+            "The Open Movie Database"
+          ],
+          "MetadataFetchers": [
+            "TheMovieDb",
+            "The Open Movie Database"
+          ],
+          "Type": "Episode"
+        }
+      ],
+      "UseCustomTagDelimiters": false
+    },
+    "Name": "Shows",
+    "Paths": [
+      "/mnt/symlinks/shows"
+    ]
+  },
+  {
+    "CollectionType": "movies",
+    "LibraryOptions": {
+      "AllowEmbeddedSubtitles": "AllowAll",
+      "AutomaticRefreshIntervalDays": 0,
+      "AutomaticallyAddToCollection": false,
+      "CustomTagDelimiters": [
+        "/",
+        "|",
+        ";",
+        "\\"
+      ],
+      "DelimiterWhitelist": [],
+      "DisabledLocalMetadataReaders": [],
+      "DisabledLyricFetchers": [],
+      "DisabledMediaSegmentProviders": [],
+      "DisabledSubtitleFetchers": [],
+      "EnableAutomaticSeriesGrouping": false,
+      "EnableChapterImageExtraction": false,
+      "EnableEmbeddedEpisodeInfos": false,
+      "EnableEmbeddedExtrasTitles": false,
+      "EnableEmbeddedTitles": false,
+      "EnableInternetProviders": false,
+      "EnableLUFSScan": true,
+      "EnablePhotos": true,
+      "EnableRealtimeMonitor": true,
+      "EnableTrickplayImageExtraction": true,
+      "Enabled": true,
+      "ExtractChapterImagesDuringLibraryScan": false,
+      "ExtractTrickplayImagesDuringLibraryScan": true,
+      "LocalMetadataReaderOrder": [
+        "Nfo"
+      ],
+      "LyricFetcherOrder": [],
+      "MediaSegmentProviderOrder": [
+        "Intro Skipper"
+      ],
+      "MetadataCountryCode": "",
+      "MetadataSavers": [],
+      "PreferNonstandardArtistsTag": false,
+      "PreferredMetadataLanguage": "",
+      "RequirePerfectSubtitleMatch": true,
+      "SaveLocalMetadata": false,
+      "SaveLyricsWithMedia": false,
+      "SaveSubtitlesWithMedia": true,
+      "SaveTrickplayWithMedia": false,
+      "SeasonZeroDisplayName": "Specials",
+      "SkipSubtitlesIfAudioTrackMatches": false,
+      "SkipSubtitlesIfEmbeddedSubtitlesPresent": false,
+      "SubtitleDownloadLanguages": [
+        "ara"
+      ],
+      "SubtitleFetcherOrder": [
+        "Open Subtitles"
+      ],
+      "TypeOptions": [
+        {
+          "ImageFetcherOrder": [
+            "TheMovieDb",
+            "The Open Movie Database",
+            "Embedded Image Extractor",
+            "Screen Grabber"
+          ],
+          "ImageFetchers": [
+            "TheMovieDb",
+            "The Open Movie Database",
+            "Embedded Image Extractor",
+            "Screen Grabber"
+          ],
+          "ImageOptions": [],
+          "MetadataFetcherOrder": [
+            "TheMovieDb",
+            "The Open Movie Database"
+          ],
+          "MetadataFetchers": [
+            "TheMovieDb",
+            "The Open Movie Database"
+          ],
+          "Type": "Movie"
+        }
+      ],
+      "UseCustomTagDelimiters": false
+    },
+    "Name": "Movies",
+    "Paths": [
+      "/mnt/symlinks/movies/"
+    ]
+  }
+]

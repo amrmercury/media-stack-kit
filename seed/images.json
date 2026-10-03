@@ -1,0 +1,57 @@
+{
+  "bazarr": {
+    "image": "lscr.io/linuxserver/bazarr@sha256:8b30e81c4aec2991f469e78fae8afaa89ecc9b21a80e3897f50427216b55470c",
+    "tag": "lscr.io/linuxserver/bazarr:latest",
+    "version": "v1.6.2-ls366"
+  },
+  "decypharr": {
+    "image": "cy01/blackhole@sha256:a65c62a18843ca3dfa73cdee5eecccd3732d98f3ff845ae8338a1caf7060dd1a",
+    "tag": "cy01/blackhole:latest",
+    "version": null
+  },
+  "flaresolverr": {
+    "image": "ghcr.io/flaresolverr/flaresolverr@sha256:139dfee1c6f89249c8d665d1333a42e8ec74ec0a86bc6bb1c8461e10d3a66a47",
+    "tag": "ghcr.io/flaresolverr/flaresolverr:latest",
+    "version": "v3.5.0"
+  },
+  "homepage": {
+    "image": "ghcr.io/gethomepage/homepage@sha256:643bd0be730d40f69d58028a55d1a896739333e8815786df42bc97f109ecbe61",
+    "tag": "ghcr.io/gethomepage/homepage:latest",
+    "version": "v2.4.0"
+  },
+  "jellyfin": {
+    "image": "jellyfin/jellyfin@sha256:aefb67e6a7ff1debdd154a78a7bbb780fd0c873d8639210a7f6a2016ad2b35db",
+    "tag": "jellyfin/jellyfin:10.11.11",
+    "version": "10.11.11"
+  },
+  "jellyseerr": {
+    "image": "fallenbagel/jellyseerr@sha256:4538137bc5af902dece165f2bf73776d9cf4eafb6dd714670724af8f3eb77764",
+    "tag": "fallenbagel/jellyseerr:latest",
+    "version": null
+  },
+  "pearlarr": {
+    "image": "ghcr.io/trevinbrooks/pearlarr@sha256:edc4f1fd7a524290ccd6045a847cdcae6d2b99e1a84f7d43f9740a2a10bcef54",
+    "tag": "ghcr.io/trevinbrooks/pearlarr:v1.3.5",
+    "version": "v1.3.5"
+  },
+  "prowlarr": {
+    "image": "lscr.io/linuxserver/prowlarr@sha256:f2b26429893d4c4cb71941b7ee50b1bdecd9d5f9f9e02d5410615e9f4f7c8d95",
+    "tag": "lscr.io/linuxserver/prowlarr:latest",
+    "version": "2.6.5.5623-ls162"
+  },
+  "radarr": {
+    "image": "lscr.io/linuxserver/radarr@sha256:adb6c09d6b729ea5e642c99cea35af72702ef476bf4763f153299ac5db9f0b4f",
+    "tag": "lscr.io/linuxserver/radarr:latest",
+    "version": "6.4.4.10685-ls318"
+  },
+  "recyclarr": {
+    "image": "ghcr.io/recyclarr/recyclarr@sha256:6e69e009e1cd7493ff6093e8e187b5d3788c75b4a2c0c5127b6a1beda1c19728",
+    "tag": "ghcr.io/recyclarr/recyclarr:8",
+    "version": "8.7.2"
+  },
+  "sonarr": {
+    "image": "lscr.io/linuxserver/sonarr@sha256:f247545d23ba8b233d6604575347e48a623fe6ad75dda02348bf81917f3b5c06",
+    "tag": "lscr.io/linuxserver/sonarr:latest",
+    "version": "4.0.20.3014-ls326"
+  }
+}

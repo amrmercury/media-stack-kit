@@ -1,0 +1,31 @@
+[
+  {
+    "configContract": "QBittorrentSettings",
+    "enable": true,
+    "fields": {
+      "apiKey": null,
+      "contentLayout": 0,
+      "firstAndLast": false,
+      "host": "decypharr",
+      "initialState": 0,
+      "movieCategory": "radarr",
+      "movieImportedCategory": null,
+      "olderMoviePriority": 0,
+      "password": null,
+      "port": 8282,
+      "recentMoviePriority": 0,
+      "sequentialOrder": false,
+      "urlBase": null,
+      "useSsl": false,
+      "username": null
+    },
+    "implementation": "QBittorrent",
+    "implementationName": "qBittorrent",
+    "name": "qBittorrent",
+    "priority": 1,
+    "protocol": "torrent",
+    "removeCompletedDownloads": true,
+    "removeFailedDownloads": true,
+    "tags": []
+  }
+]

@@ -1,0 +1,203 @@
+{
+  "ActivityLogRetentionDays": 30,
+  "AllowClientLogUpload": true,
+  "CacheSize": 1200,
+  "CastReceiverApplications": [
+    {
+      "Id": "F007D354",
+      "Name": "Stable"
+    },
+    {
+      "Id": "6F511C87",
+      "Name": "Unstable"
+    }
+  ],
+  "ChapterImageResolution": "MatchSource",
+  "CodecsUsed": [],
+  "ContentTypes": [],
+  "CorsHosts": [
+    "*"
+  ],
+  "DisableLiveTvChannelUserDataName": true,
+  "DisplaySpecialsWithinSeasons": true,
+  "DummyChapterDuration": 0,
+  "EnableCaseSensitiveItemIds": true,
+  "EnableExternalContentInSuggestions": true,
+  "EnableFolderView": false,
+  "EnableGroupingMoviesIntoCollections": false,
+  "EnableGroupingShowsIntoCollections": false,
+  "EnableLegacyAuthorization": true,
+  "EnableMetrics": false,
+  "EnableNormalizedItemByNameIds": true,
+  "EnableSlowResponseWarning": true,
+  "ImageExtractionTimeoutMs": 0,
+  "ImageSavingConvention": "Legacy",
+  "InactiveSessionThreshold": 0,
+  "LibraryMetadataRefreshConcurrency": 0,
+  "LibraryMonitorDelay": 60,
+  "LibraryScanFanoutConcurrency": 0,
+  "LibraryUpdateDuration": 30,
+  "LogFileRetentionDays": 3,
+  "MaxAudiobookResume": 5,
+  "MaxResumePct": 90,
+  "MetadataCountryCode": "US",
+  "MetadataOptions": [
+    {
+      "DisabledImageFetchers": [],
+      "DisabledMetadataFetchers": [],
+      "DisabledMetadataSavers": [],
+      "ImageFetcherOrder": [],
+      "ItemType": "Book",
+      "LocalMetadataReaderOrder": [],
+      "MetadataFetcherOrder": []
+    },
+    {
+      "DisabledImageFetchers": [],
+      "DisabledMetadataFetchers": [],
+      "DisabledMetadataSavers": [],
+      "ImageFetcherOrder": [],
+      "ItemType": "Movie",
+      "LocalMetadataReaderOrder": [],
+      "MetadataFetcherOrder": []
+    },
+    {
+      "DisabledImageFetchers": [
+        "The Open Movie Database"
+      ],
+      "DisabledMetadataFetchers": [
+        "The Open Movie Database"
+      ],
+      "DisabledMetadataSavers": [],
+      "ImageFetcherOrder": [],
+      "ItemType": "MusicVideo",
+      "LocalMetadataReaderOrder": [],
+      "MetadataFetcherOrder": []
+    },
+    {
+      "DisabledImageFetchers": [],
+      "DisabledMetadataFetchers": [],
+      "DisabledMetadataSavers": [],
+      "ImageFetcherOrder": [],
+      "ItemType": "Series",
+      "LocalMetadataReaderOrder": [],
+      "MetadataFetcherOrder": []
+    },
+    {
+      "DisabledImageFetchers": [],
+      "DisabledMetadataFetchers": [
+        "TheAudioDB"
+      ],
+      "DisabledMetadataSavers": [],
+      "ImageFetcherOrder": [],
+      "ItemType": "MusicAlbum",
+      "LocalMetadataReaderOrder": [],
+      "MetadataFetcherOrder": []
+    },
+    {
+      "DisabledImageFetchers": [],
+      "DisabledMetadataFetchers": [
+        "TheAudioDB"
+      ],
+      "DisabledMetadataSavers": [],
+      "ImageFetcherOrder": [],
+      "ItemType": "MusicArtist",
+      "LocalMetadataReaderOrder": [],
+      "MetadataFetcherOrder": []
+    },
+    {
+      "DisabledImageFetchers": [],
+      "DisabledMetadataFetchers": [],
+      "DisabledMetadataSavers": [],
+      "ImageFetcherOrder": [],
+      "ItemType": "BoxSet",
+      "LocalMetadataReaderOrder": [],
+      "MetadataFetcherOrder": []
+    },
+    {
+      "DisabledImageFetchers": [],
+      "DisabledMetadataFetchers": [],
+      "DisabledMetadataSavers": [],
+      "ImageFetcherOrder": [],
+      "ItemType": "Season",
+      "LocalMetadataReaderOrder": [],
+      "MetadataFetcherOrder": []
+    },
+    {
+      "DisabledImageFetchers": [],
+      "DisabledMetadataFetchers": [],
+      "DisabledMetadataSavers": [],
+      "ImageFetcherOrder": [],
+      "ItemType": "Episode",
+      "LocalMetadataReaderOrder": [],
+      "MetadataFetcherOrder": []
+    }
+  ],
+  "MinAudiobookResume": 5,
+  "MinResumeDurationSeconds": 300,
+  "MinResumePct": 5,
+  "ParallelImageEncodingLimit": 0,
+  "PathSubstitutions": [],
+  "PluginRepositories": [
+    {
+      "Enabled": true,
+      "Name": "Jellyfin Stable",
+      "Url": "https://repo.jellyfin.org/files/plugin/manifest.json"
+    },
+    {
+      "Enabled": true,
+      "Name": "Moonbase",
+      "Url": "https://raw.githubusercontent.com/Moonfin-Client/Plugin/refs/heads/master/manifest.json"
+    },
+    {
+      "Enabled": true,
+      "Name": "LizardByte",
+      "Url": "https://app.lizardbyte.dev/jellyfin-plugin-repo/manifest.json"
+    },
+    {
+      "Enabled": true,
+      "Name": "jyourstone",
+      "Url": "https://raw.githubusercontent.com/jyourstone/jellyfin-plugin-manifest/main/manifest.json"
+    }
+  ],
+  "PreferredMetadataLanguage": "en",
+  "QuickConnectAvailable": true,
+  "RemoteClientBitrateLimit": 0,
+  "SaveMetadataHidden": false,
+  "SkipDeserializationForBasicTypes": true,
+  "SlowResponseThresholdMs": 500,
+  "SortRemoveCharacters": [
+    ",",
+    "&",
+    "-",
+    "{",
+    "}",
+    "'"
+  ],
+  "SortRemoveWords": [
+    "the",
+    "a",
+    "an"
+  ],
+  "SortReplaceCharacters": [
+    ".",
+    "+",
+    "%"
+  ],
+  "TrickplayOptions": {
+    "EnableHwAcceleration": true,
+    "EnableHwEncoding": false,
+    "EnableKeyFrameOnlyExtraction": true,
+    "Interval": 10000,
+    "JpegQuality": 90,
+    "ProcessPriority": "BelowNormal",
+    "ProcessThreads": 1,
+    "Qscale": 4,
+    "ScanBehavior": "NonBlocking",
+    "TileHeight": 10,
+    "TileWidth": 10,
+    "WidthResolutions": [
+      320
+    ]
+  },
+  "UICulture": "en-US"
+}

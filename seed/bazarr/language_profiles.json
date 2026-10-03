@@ -1,0 +1,29 @@
+[
+  {
+    "cutoff": null,
+    "items": [
+      {
+        "audio_exclude": "False",
+        "audio_only_include": "False",
+        "forced": "False",
+        "hi": "False",
+        "id": 1,
+        "language": "en"
+      },
+      {
+        "audio_exclude": "True",
+        "audio_only_include": "False",
+        "forced": "False",
+        "hi": "False",
+        "id": 2,
+        "language": "ar"
+      }
+    ],
+    "mustContain": [],
+    "mustNotContain": [],
+    "name": "English & Arabic",
+    "originalFormat": true,
+    "profileId": 1,
+    "tag": null
+  }
+]

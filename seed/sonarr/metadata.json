@@ -1,0 +1,71 @@
+[
+  {
+    "configContract": "XbmcMetadataSettings",
+    "enable": false,
+    "fields": {
+      "episodeImageThumb": false,
+      "episodeImages": true,
+      "episodeMetadata": true,
+      "seasonImages": true,
+      "seriesImages": true,
+      "seriesMetadata": true,
+      "seriesMetadataEpisodeGuide": null,
+      "seriesMetadataUrl": false
+    },
+    "implementation": "XbmcMetadata",
+    "implementationName": "Kodi (XBMC) / Emby",
+    "name": "Kodi (XBMC) / Emby",
+    "tags": []
+  },
+  {
+    "configContract": "KometaMetadataSettings",
+    "enable": false,
+    "fields": {
+      "deprecated": true
+    },
+    "implementation": "KometaMetadata",
+    "implementationName": "Kometa",
+    "name": "Kometa",
+    "tags": []
+  },
+  {
+    "configContract": "PlexMetadataSettings",
+    "enable": false,
+    "fields": {
+      "episodeMappings": false,
+      "seriesPlexMatchFile": true
+    },
+    "implementation": "PlexMetadata",
+    "implementationName": "Plex",
+    "name": "Plex",
+    "tags": []
+  },
+  {
+    "configContract": "RoksboxMetadataSettings",
+    "enable": false,
+    "fields": {
+      "episodeImages": true,
+      "episodeMetadata": true,
+      "seasonImages": true,
+      "seriesImages": true
+    },
+    "implementation": "RoksboxMetadata",
+    "implementationName": "Roksbox",
+    "name": "Roksbox",
+    "tags": []
+  },
+  {
+    "configContract": "WdtvMetadataSettings",
+    "enable": false,
+    "fields": {
+      "episodeImages": true,
+      "episodeMetadata": true,
+      "seasonImages": true,
+      "seriesImages": true
+    },
+    "implementation": "WdtvMetadata",
+    "implementationName": "WDTV",
+    "name": "WDTV",
+    "tags": []
+  }
+]

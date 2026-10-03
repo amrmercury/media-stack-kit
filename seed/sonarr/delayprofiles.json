@@ -1,0 +1,14 @@
+[
+  {
+    "bypassIfAboveCustomFormatScore": false,
+    "bypassIfHighestQuality": true,
+    "enableTorrent": true,
+    "enableUsenet": true,
+    "minimumCustomFormatScore": 0,
+    "order": 2147483647,
+    "preferredProtocol": "usenet",
+    "tags": [],
+    "torrentDelay": 0,
+    "usenetDelay": 0
+  }
+]

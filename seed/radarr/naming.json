@@ -1,0 +1,8 @@
+{
+  "colonReplacementFormat": "smart",
+  "id": 1,
+  "movieFolderFormat": "{Movie Title} ({Release Year})",
+  "renameMovies": true,
+  "replaceIllegalCharacters": true,
+  "standardMovieFormat": "{Movie Title} ({Release Year}) {Quality Full}"
+}

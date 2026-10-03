@@ -1,0 +1,36 @@
+[
+  {
+    "configContract": "TorznabSettings",
+    "downloadClientId": 0,
+    "enableAutomaticSearch": true,
+    "enableInteractiveSearch": true,
+    "enableRss": true,
+    "fields": {
+      "additionalParameters": null,
+      "animeCategories": [],
+      "animeStandardFormatSearch": false,
+      "apiKey": null,
+      "apiPath": "/api",
+      "baseUrl": "http://__HOST__:5011",
+      "categories": [
+        5000
+      ],
+      "failDownloads": [],
+      "minimumSeeders": 1,
+      "multiLanguages": [],
+      "rejectBlocklistedTorrentHashesWhileGrabbing": false,
+      "seedCriteria.seasonPackSeedTime": null,
+      "seedCriteria.seedRatio": null,
+      "seedCriteria.seedTime": null
+    },
+    "implementation": "Torznab",
+    "implementationName": "Torznab",
+    "name": "Arabarr",
+    "priority": 25,
+    "protocol": "torrent",
+    "seasonSearchMaximumSingleEpisodeAge": 0,
+    "supportsRss": true,
+    "supportsSearch": true,
+    "tags": []
+  }
+]

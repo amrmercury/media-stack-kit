@@ -1,0 +1,70 @@
+sonarr:
+  Shows:
+    base_url: http://sonarr:8989
+    api_key: __KEY__
+
+    quality_profiles:
+      - name: Any
+        min_format_score: 0
+      - name: SD
+        min_format_score: 0
+      - name: HD-720p
+        min_format_score: 0
+      - name: HD-1080p
+        min_format_score: 0
+      - name: Ultra-HD
+        min_format_score: 0
+      - name: HD - 720p/1080p
+        min_format_score: 0
+      - name: Best Available
+        min_format_score: 0
+      - name: SD anime
+        min_format_score: 0
+
+    custom_formats:
+      - trash_ids:
+          - 23297a736ca77c0fc8e70f8edd7ee56c # Upscaled - detects AI/fake-upscaled releases
+        score: -10000
+        assign_scores_to:
+          - name: Any
+          - name: SD
+          - name: HD-720p
+          - name: HD-1080p
+          - name: Ultra-HD
+          - name: HD - 720p/1080p
+          - name: Best Available
+          - name: SD anime
+
+radarr:
+  Movies:
+    base_url: http://radarr:7878
+    api_key: __KEY__
+
+    quality_profiles:
+      - name: Any
+        min_format_score: 0
+      - name: SD
+        min_format_score: 0
+      - name: HD-720p
+        min_format_score: 0
+      - name: HD-1080p
+        min_format_score: 0
+      - name: Ultra-HD
+        min_format_score: 0
+      - name: HD - 720p/1080p
+        min_format_score: 0
+      - name: "Best available " # trailing space is intentional - matches this profile's actual name
+        min_format_score: 0
+
+    custom_formats:
+      - trash_ids:
+          - bfd8eb01832d646a0a89c4deb46f8564 # Upscaled - detects AI/fake-upscaled releases
+        score: -10000
+        assign_scores_to:
+          - name: Any
+          - name: SD
+          - name: HD-720p
+          - name: HD-1080p
+          - name: Ultra-HD
+          - name: HD - 720p/1080p
+          - name: "Best available "

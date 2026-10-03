@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PluginConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <EnableSettingsSync>true</EnableSettingsSync>
+  <SeerrEnabled>true</SeerrEnabled>
+  <SeerrUrl>http://__HOST__:5055</SeerrUrl>
+  <JellyseerrEnabled>false</JellyseerrEnabled>
+  <SeerrWebhookSecret>__SECRET__</SeerrWebhookSecret>
+  <PublicServerUrl>http://__HOST__:8096</PublicServerUrl>
+  <MdblistOfficialListsEnabled>true</MdblistOfficialListsEnabled>
+  <ImdbListsEnabled>true</ImdbListsEnabled>
+  <MdblistOfficialListsMaxItems>250</MdblistOfficialListsMaxItems>
+  <StudioLogosEnabled>true</StudioLogosEnabled>
+  <StudioLogosMaxAgeDays>30</StudioLogosMaxAgeDays>
+  <WebEnableWebRtcScan>true</WebEnableWebRtcScan>
+  <PushRelayUrl>https://push.moonfin.io/send</PushRelayUrl>
+  <DefaultUserSettings>
+    <SeerrEnabled xsi:nil="true" />
+    <SeerrBlockNsfw xsi:nil="true" />
+    <SeerrRows>
+      <TrendingMovies xsi:nil="true" />
+      <TrendingTv xsi:nil="true" />
+      <PopularMovies xsi:nil="true" />
+      <PopularTv xsi:nil="true" />
+      <UpcomingMovies xsi:nil="true" />
+      <UpcomingTv xsi:nil="true" />
+      <RowOrder>
+        <string>shortcuts</string>
+        <string>recent_requests</string>
+        <string>watchlist</string>
+        <string>recently_added</string>
+        <string>trending</string>
+        <string>popular_movies</string>
+        <string>movie_genres</string>
+        <string>upcoming_movies</string>
+        <string>studios</string>
+        <string>popular_series</string>
+        <string>series_genres</string>
+        <string>upcoming_series</string>
+        <string>networks</string>
+      </RowOrder>
+    </SeerrRows>
+    <JellyseerrEnabledCompat xsi:nil="true" />
+    <JellyseerrBlockNsfwCompat xsi:nil="true" />
+    <JellyseerrRowsCompat>
+      <TrendingMovies xsi:nil="true" />
+      <TrendingTv xsi:nil="true" />
+      <PopularMovies xsi:nil="true" />
+      <PopularTv xsi:nil="true" />
+      <UpcomingMovies xsi:nil="true" />
+      <UpcomingTv xsi:nil="true" />
+      <RowOrder>
+        <string>shortcuts</string>
+        <string>recent_requests</string>
+        <string>watchlist</string>
+        <string>recently_added</string>
+        <string>trending</string>
+        <string>popular_movies</string>
+        <string>movie_genres</string>
+        <string>upcoming_movies</string>
+        <string>studios</string>
+        <string>popular_series</string>
+        <string>series_genres</string>
+        <string>upcoming_series</string>
+        <string>networks</string>
+      </RowOrder>
+    </JellyseerrRowsCompat>
+    <MdblistEnabled>false</MdblistEnabled>
+    <MdblistShowRatingNames xsi:nil="true" />
+    <MdblistShowRatingBadges xsi:nil="true" />
+    <TmdbEpisodeRatingsEnabled>false</TmdbEpisodeRatingsEnabled>
+    <DetailsBackdropOpacity xsi:nil="true" />
+    <DetailsBackdropBlur xsi:nil="true" />
+    <NavbarOpacity xsi:nil="true" />
+    <NavbarAlwaysExpanded xsi:nil="true" />
+    <MediaBarTrailerCaptions xsi:nil="true" />
+    <DetailExpandedTabs xsi:nil="true" />
+    <CardFocusExpansion xsi:nil="true" />
+    <ShowShuffleButton xsi:nil="true" />
+    <ShowGenresButton xsi:nil="true" />
+    <ShowFavoritesButton xsi:nil="true" />
+    <ShowCastButton xsi:nil="true" />
+    <ShowSyncPlayButton xsi:nil="true" />
+    <ShowLibrariesInToolbar xsi:nil="true" />
+    <MergeContinueWatchingNextUp xsi:nil="true" />
+    <NextUpMaxDays xsi:nil="true" />
+    <EnableMultiServerLibraries xsi:nil="true" />
+    <EnableFolderView xsi:nil="true" />
+    <UseDetailedSubHeadings xsi:nil="true" />
+    <ConfirmExit xsi:nil="true" />
+    <MediaBarItemCount xsi:nil="true" />
+    <MediaBarOpacity xsi:nil="true" />
+    <MediaBarAutoAdvance xsi:nil="true" />
+    <MediaBarIntervalMs xsi:nil="true" />
+    <MediaBarTrailerPreview xsi:nil="true" />
+    <MediaBarTrailerAudio xsi:nil="true" />
+    <EpisodePreviewEnabled xsi:nil="true" />
+    <PreviewAudioEnabled xsi:nil="true" />
+    <MediaBarCollectionIds />
+    <MediaBarLibraryIds />
+    <BackdropEnabled xsi:nil="true" />
+    <HomeRowsImageTypeOverride xsi:nil="true" />
+    <ModernHomeRowsPadding xsi:nil="true" />
+    <ClassicHomeRowsPadding xsi:nil="true" />
+    <FullScreenRows xsi:nil="true" />
+    <HomeImageUseSeriesImage xsi:nil="true" />
+    <ThemeMusicEnabled xsi:nil="true" />
+    <ThemeMusicOnHomeRows xsi:nil="true" />
+    <ThemeMusicVolume xsi:nil="true" />
+    <ThemeMusicLoop xsi:nil="true" />
+    <BlockedRatings />
+    <DisplayFavoritesRows xsi:nil="true" />
+    <DisplayCollectionsRows xsi:nil="true" />
+    <DisplayGenresRows xsi:nil="true" />
+    <DisplaySeerrRows xsi:nil="true" />
+    <DisplayPlaylistsRows xsi:nil="true" />
+    <DisplayAudioRows xsi:nil="true" />
+    <DisplaySinceYouWatchedRows xsi:nil="true" />
+    <SinceYouWatchedNumRows xsi:nil="true" />
+    <SinceYouWatchedIncludeWatched xsi:nil="true" />
+    <DisplayRewatchRow xsi:nil="true" />
+    <RewatchIncludeMovies xsi:nil="true" />
+    <RewatchIncludeShows xsi:nil="true" />
+    <RewatchIncludeCollections xsi:nil="true" />
+    <DetailShowTechnicalDetails xsi:nil="true" />
+    <DetailTrailersExternal xsi:nil="true" />
+    <HideDetailsMediaDescription xsi:nil="true" />
+    <DetailUseSeriesThumbnails xsi:nil="true" />
+    <HideHomeMediaDescription xsi:nil="true" />
+    <RecommendationsApplyParentalRatingCap xsi:nil="true" />
+    <ScreensaverEnabled xsi:nil="true" />
+    <ScreensaverDimming xsi:nil="true" />
+    <ScreensaverRequireRating xsi:nil="true" />
+    <SubtitleMode>always</SubtitleMode>
+    <DefaultSubtitleLanguage>ara</DefaultSubtitleLanguage>
+    <PreferSdhSubtitles xsi:nil="true" />
+    <SubtitlesUseEmbeddedStyles xsi:nil="true" />
+    <SubtitlesUseEmbeddedFontSizes xsi:nil="true" />
+    <PgsDirectPlay xsi:nil="true" />
+    <AssDirectPlay xsi:nil="true" />
+    <SubtitlesTextSize xsi:nil="true" />
+    <SubtitlesOffsetPosition xsi:nil="true" />
+    <SubtitlesTextWeight xsi:nil="true" />
+    <SubtitlesHdrSeparate xsi:nil="true" />
+    <SubtitlesHdrTextSize xsi:nil="true" />
+    <SubtitlesHdrOffsetPosition xsi:nil="true" />
+    <SubtitlesHdrTextWeight xsi:nil="true" />
+    <PreferDefaultAudioTrack xsi:nil="true" />
+    <PreferAudioDescription xsi:nil="true" />
+    <AudioNightMode xsi:nil="true" />
+    <ShowDescriptionOnPause xsi:nil="true" />
+    <UnpauseRewindDuration xsi:nil="true" />
+    <SkipBackLength xsi:nil="true" />
+    <SkipForwardLength xsi:nil="true" />
+    <OsdLockEnabled xsi:nil="true" />
+    <DetailButtonOrderTv>
+      <string>seerrRequest</string>
+      <string>seerrRequest4k</string>
+      <string>shuffle</string>
+      <string>restart</string>
+      <string>playOffline</string>
+      <string>audio</string>
+      <string>subtitles</string>
+      <string>version</string>
+      <string>cast</string>
+      <string>trailer</string>
+      <string>watchWithGroup</string>
+      <string>watched</string>
+      <string>favorite</string>
+      <string>playlist</string>
+      <string>download</string>
+      <string>deleteFiles</string>
+      <string>goToSeries</string>
+      <string>seerrWatchlist</string>
+      <string>seerrReportIssue</string>
+      <string>seerrManage</string>
+      <string>admin</string>
+    </DetailButtonOrderTv>
+    <DetailButtonOrderMobile>
+      <string>seerrRequest</string>
+      <string>seerrRequest4k</string>
+      <string>shuffle</string>
+      <string>restart</string>
+      <string>playOffline</string>
+      <string>audio</string>
+      <string>subtitles</string>
+      <string>version</string>
+      <string>cast</string>
+      <string>trailer</string>
+      <string>watchWithGroup</string>
+      <string>watched</string>
+      <string>favorite</string>
+      <string>playlist</string>
+      <string>download</string>
+      <string>deleteFiles</string>
+      <string>goToSeries</string>
+      <string>seerrWatchlist</string>
+      <string>seerrReportIssue</string>
+      <string>seerrManage</string>
+      <string>admin</string>
+    </DetailButtonOrderMobile>
+    <DetailButtonOrderDesktop>
+      <string>seerrRequest</string>
+      <string>seerrRequest4k</string>
+      <string>shuffle</string>
+      <string>restart</string>
+      <string>playOffline</string>
+      <string>audio</string>
+      <string>subtitles</string>
+      <string>version</string>
+      <string>cast</string>
+      <string>trailer</string>
+      <string>watchWithGroup</string>
+      <string>watched</string>
+      <string>favorite</string>
+      <string>playlist</string>
+      <string>download</string>
+      <string>deleteFiles</string>
+      <string>goToSeries</string>
+      <string>seerrWatchlist</string>
+      <string>seerrReportIssue</string>
+      <string>seerrManage</string>
+      <string>admin</string>
+    </DetailButtonOrderDesktop>
+    <OsdButtonOrderTv>
+      <string>syncPlay</string>
+      <string>favorite</string>
+      <string>speed</string>
+      <string>chapters</string>
+      <string>subtitles</string>
+      <string>audio</string>
+      <string>castAndCrew</string>
+      <string>cast</string>
+      <string>volume</string>
+      <string>quality</string>
+      <string>zoom</string>
+      <string>orientation</string>
+      <string>info</string>
+      <string>fullscreen</string>
+      <string>floatOnTop</string>
+    </OsdButtonOrderTv>
+    <OsdButtonOrderMobile>
+      <string>syncPlay</string>
+      <string>favorite</string>
+      <string>speed</string>
+      <string>chapters</string>
+      <string>subtitles</string>
+      <string>audio</string>
+      <string>castAndCrew</string>
+      <string>cast</string>
+      <string>volume</string>
+      <string>quality</string>
+      <string>zoom</string>
+      <string>orientation</string>
+      <string>info</string>
+      <string>fullscreen</string>
+      <string>floatOnTop</string>
+    </OsdButtonOrderMobile>
+    <OsdButtonOrderDesktop>
+      <string>syncPlay</string>
+      <string>favorite</string>
+      <string>speed</string>
+      <string>chapters</string>
+      <string>subtitles</string>
+      <string>audio</string>
+      <string>castAndCrew</string>
+      <string>cast</string>
+      <string>volume</string>
+      <string>quality</string>
+      <string>zoom</string>
+      <string>orientation</string>
+      <string>info</string>
+      <string>fullscreen</string>
+      <string>floatOnTop</string>
+    </OsdButtonOrderDesktop>
+    <VideoStartDelay xsi:nil="true" />
+    <LiveTvDirectPlayEnabled xsi:nil="true" />
+    <CinemaModeEnabled xsi:nil="true" />
+    <AutoplayNextEpisode xsi:nil="true" />
+    <NextUpTimeout xsi:nil="true" />
+    <ReplaceSkipOutroWithNextUp xsi:nil="true" />
+    <MediaQueuingEnabled xsi:nil="true" />
+    <ResumeLastQueueOnPlay xsi:nil="true" />
+    <SyncPlayEnabled xsi:nil="true" />
+    <SyncPlayAutoOpen xsi:nil="true" />
+    <SyncPlayAdvancedCorrectionEnabled xsi:nil="true" />
+    <SyncPlayEnableSyncCorrection xsi:nil="true" />
+    <SyncPlayUseSpeedToSync xsi:nil="true" />
+    <SyncPlayUseSkipToSync xsi:nil="true" />
+    <SyncPlayMinDelaySpeedToSync xsi:nil="true" />
+    <SyncPlayMaxDelaySpeedToSync xsi:nil="true" />
+    <SyncPlaySpeedToSyncDuration xsi:nil="true" />
+    <SyncPlayMinDelaySkipToSync xsi:nil="true" />
+    <SyncPlayExtraTimeOffset xsi:nil="true" />
+    <DownloadWifiOnly xsi:nil="true" />
+    <ReportDownloadsAsActivity xsi:nil="true" />
+    <DownloadStorageLimitMb xsi:nil="true" />
+    <ImdbTop250MoviesEnabled xsi:nil="true" />
+    <ImdbTop250TvShowsEnabled xsi:nil="true" />
+    <ImdbMostPopularMoviesEnabled xsi:nil="true" />
+    <ImdbMostPopularTvShowsEnabled xsi:nil="true" />
+    <ImdbLowestRatedMoviesEnabled xsi:nil="true" />
+    <ImdbTopEnglishMoviesEnabled xsi:nil="true" />
+    <TmdbPopularMoviesEnabled xsi:nil="true" />
+    <TmdbTopRatedMoviesEnabled xsi:nil="true" />
+    <TmdbNowPlayingMoviesEnabled xsi:nil="true" />
+    <TmdbUpcomingMoviesEnabled xsi:nil="true" />
+    <TmdbPopularTvEnabled xsi:nil="true" />
+    <TmdbTopRatedTvEnabled xsi:nil="true" />
+    <TmdbAiringTodayTvEnabled xsi:nil="true" />
+    <TmdbOnTheAirTvEnabled xsi:nil="true" />
+    <TmdbTrendingMovieDailyEnabled xsi:nil="true" />
+    <TmdbTrendingMovieWeeklyEnabled xsi:nil="true" />
+    <TmdbTrendingTvDailyEnabled xsi:nil="true" />
+    <TmdbTrendingTvWeeklyEnabled xsi:nil="true" />
+    <TmdbTrendingAllWeeklyEnabled xsi:nil="true" />
+    <MergeRadarrSonarrCalendars xsi:nil="true" />
+    <EnableRadarrCalendar xsi:nil="true" />
+    <RadarrCalendarShowCinema xsi:nil="true" />
+    <RadarrCalendarShowDigital xsi:nil="true" />
+    <RadarrCalendarShowPhysical xsi:nil="true" />
+    <RadarrCalendarShowDate xsi:nil="true" />
+    <EnableSonarrCalendar xsi:nil="true" />
+    <SonarrCalendarShowEpisodeInfo xsi:nil="true" />
+    <SonarrCalendarShowDate xsi:nil="true" />
+    <DisplayAudioAlbumArtists xsi:nil="true" />
+    <DisplayAudioAlbums xsi:nil="true" />
+    <DisplayAudioArtists xsi:nil="true" />
+    <DisplayAudioFavorites xsi:nil="true" />
+    <DisplayAudioLastPlayed xsi:nil="true" />
+    <DisplayAudioLatest xsi:nil="true" />
+    <DisplayAudioPlaylists xsi:nil="true" />
+    <PersonPageGroupItems xsi:nil="true" />
+    <GroupItemsIntoCollections xsi:nil="true" />
+    <ShowMediaDetailsOnLibraryPage xsi:nil="true" />
+    <HideBackdropsInLibraries xsi:nil="true" />
+    <DisplayStudiosRows xsi:nil="true" />
+    <CinemaModeEpisodesEnabled xsi:nil="true" />
+    <PlayerSwipeGestures xsi:nil="true" />
+    <DesktopScrollSensitivity xsi:nil="true" />
+    <SinceYouWatched1Enabled xsi:nil="true" />
+    <SinceYouWatched2Enabled xsi:nil="true" />
+    <SinceYouWatched3Enabled xsi:nil="true" />
+    <SinceYouWatched4Enabled xsi:nil="true" />
+    <SinceYouWatched5Enabled xsi:nil="true" />
+    <PreferSystemImeKeyboard xsi:nil="true" />
+    <Use24HourClock xsi:nil="true" />
+    <HomeRowInfoOverlay xsi:nil="true" />
+    <ShowSeerrButton xsi:nil="true" />
+    <CrashReportsEnabled xsi:nil="true" />
+    <ShowServerMessagesButton xsi:nil="true" />
+    <DiagnosticLoggingEnabled xsi:nil="true" />
+    <UpdateNotificationsEnabled xsi:nil="true" />
+    <CollectionsRowShowEpisodes xsi:nil="true" />
+    <MergeRecentRowsByType xsi:nil="true" />
+    <PlaylistsRowShowEpisodes xsi:nil="true" />
+  </DefaultUserSettings>
+  <UploadedThemes />
+  <Messages />
+  <GamesEnabled>false</GamesEnabled>
+  <GameLibraryIds />
+  <GamesMetadataEnabled>true</GamesMetadataEnabled>
+  <GamesMetadataDbUrlBase>https://cdn.jsdelivr.net/gh/libretro/libretro-database@master/rdb/</GamesMetadataDbUrlBase>
+  <GamesLaunchBoxEnabled>true</GamesLaunchBoxEnabled>
+  <GamesLaunchBoxUrl>https://gamesdb.launchbox-app.com/Metadata.zip</GamesLaunchBoxUrl>
+</PluginConfiguration>

@@ -66,6 +66,8 @@ class Bazarr:
         form += [("settings-general-use_sonarr", "true"), ("settings-general-use_radarr", "true")]
         if subs:
             general = dict(seed["general"])
+            for k in ("use_sonarr", "use_radarr"):      # already sent above; sending a key twice makes Bazarr read it as a list
+                general.pop(k, None)
             general["enabled_providers"] = [p for p in ("subsource", "subdl", "opensubtitlescom") if p in subs]
             form += self._flatten("general", general)
             form += self._flatten("embeddedsubtitles", seed.get("embeddedsubtitles", {}))

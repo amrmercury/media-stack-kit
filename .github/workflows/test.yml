@@ -17,6 +17,7 @@ jobs:
         with: {node-version: "22"}
       - run: node tests/test_ui_logic.js
       - run: python3 tests/test_webui.py
+      - run: python3 tests/test_bazarr_form.py
       - run: python3 -m py_compile lib/*.py tools/*.py
       - run: bash -n install.sh && bash -n stack.sh && bash -n diag.sh
       - run: shellcheck -S warning install.sh stack.sh diag.sh tests/ci_diag.sh || true
@@ -49,9 +50,15 @@ jobs:
       - name: Resource use
         if: always()
         run: docker stats --no-stream || true
-      - name: The --diag command works
+      - name: The --diag command works and covers what it should
         shell: bash
-        run: STACK_STATE_DIR="$RUNNER_TEMP/state" ./install.sh --diag | head -30
+        run: |
+          STACK_STATE_DIR="$RUNNER_TEMP/state" ./install.sh --diag > "$RUNNER_TEMP/diag-out.txt"
+          for h in "== kit" "== system" "== memory and disk" "== last 80 lines of the install log" "== containers" "== answers (no secrets)"; do
+            grep -q "$h" "$RUNNER_TEMP/diag-out.txt" || { echo "diag output is missing: $h"; exit 1; }
+          done
+          ! grep -q -E "FAKE[A-Z0-9]{8}" "$RUNNER_TEMP/diag-out.txt" || { echo "diag leaked a key"; exit 1; }
+          head -25 "$RUNNER_TEMP/diag-out.txt"
       - name: Collect diagnostics
         if: always()
         run: bash tests/ci_diag.sh diag "$RUNNER_TEMP/state"
@@ -66,7 +73,7 @@ jobs:
     name: installer page, real browser, real install
     needs: unit
     runs-on: ubuntu-latest
-    timeout-minutes: 50
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

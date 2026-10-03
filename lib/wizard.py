@@ -3,7 +3,7 @@
 
 Writes <state>/answers.json (0600). Also usable non-interactively:  wizard.py --answers file.json
 """
-import argparse, getpass, json, os, re, sys
+import argparse, json, os, re, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import hardware
@@ -27,7 +27,7 @@ DEBRID = {
 def ask(prompt, default=None, secret=False, validate=None, allow_empty=False):
     while True:
         suffix = f" [{default}]" if default not in (None, "") else ""
-        raw = (getpass.getpass if secret else input)(f"{prompt}{suffix}: ").strip()
+        raw = input(f"{prompt}{suffix}: ").strip()      # always visible: you can see (and check) what you type or paste
         if not raw and default is not None:
             raw = default
         if not raw and not allow_empty:
@@ -72,33 +72,94 @@ def sec_account(a):
     def vp(v):
         return None if len(v) >= 8 else "Use at least 8 characters."
 
+    a["admin_pass"] = ask("Password (you'll see it as you type)", validate=vp)
+
+
+def _fmt_free(gb):
+    return f"{gb / 1024:.1f} TB free" if gb >= 1024 else f"{gb:.0f} GB free"
+
+
+def _writable_hint(path):
+    return "" if os.access(path, os.W_OK) else "  (not writable by you)"
+
+
+def browse_folder(start):
+    """Numbered folder browser. Returns the chosen folder, or None to go back to the drive menu."""
+    cur, page = os.path.abspath(start), 0
     while True:
-        p1 = ask("Password", secret=True, validate=vp)
-        if p1 == ask("Repeat password", secret=True):
-            a["admin_pass"] = p1
-            break
-        warn("Passwords didn't match, try again.")
+        try:
+            dirs = sorted(d for d in os.listdir(cur)
+                          if not d.startswith(".") and os.path.isdir(os.path.join(cur, d)) and os.access(os.path.join(cur, d), os.R_OK))
+        except OSError:
+            warn(f"Can't open {cur}"); cur = os.path.dirname(cur) or "/"; continue
+        per = 15
+        chunk = dirs[page * per:(page + 1) * per]
+        try:
+            free = _fmt_free(hardware.shutil.disk_usage(cur).free / 1024 ** 3)
+        except OSError:
+            free = "?"
+        print(f"\n  {B}{cur}{R}   {D}({free}){_writable_hint(cur)}{R}")
+        for i, d in enumerate(chunk, 1):
+            print(f"   {i:>2}) {d}/")
+        if not dirs:
+            print(f"   {D}(no folders here){R}")
+        more = (page + 1) * per < len(dirs)
+        print(f"   {D}number = open · u = up · s = use THIS folder · n = new folder here · h = home · d = back to drives"
+              + (" · m = more" if more else "") + R)
+        c = input("  > ").strip().lower()
+        if c.isdigit() and 1 <= int(c) <= len(chunk):
+            cur, page = os.path.join(cur, chunk[int(c) - 1]), 0
+        elif c == "u":
+            cur, page = os.path.dirname(cur) or "/", 0
+        elif c == "h":
+            cur, page = os.path.expanduser("~"), 0
+        elif c == "d":
+            return None
+        elif c == "m" and more:
+            page += 1
+        elif c == "n":
+            name = input("  New folder name: ").strip()
+            if not re.fullmatch(r"[^/\\\0]{1,64}", name or "") or name in (".", ".."):
+                warn("Use a simple name (no slashes)."); continue
+            try:
+                os.makedirs(os.path.join(cur, name), exist_ok=True)
+                cur, page = os.path.join(cur, name), 0
+            except OSError as e:
+                warn(f"Couldn't create it: {e.strerror}")
+        elif c == "s":
+            if os.access(cur, os.W_OK):
+                return cur
+            warn("You can't write to this folder; pick another.")
+        else:
+            warn("Type a number from the list, or one of the letters shown.")
+
+
+def pick_library_folder():
+    opts = hardware.drive_options()
+    while True:
+        print("\n  Where should your library go?")
+        for i, o in enumerate(opts, 1):
+            where = o["path"]
+            print(f"   {i}) {o['label']:<14} {D}{where} · {o['kind']} · {_fmt_free(o['free_gb'])}{R}")
+        print(f"   B) Browse for another folder")
+        c = ask("Choose", default="1", validate=lambda v: None if v.lower() == "b" or (v.isdigit() and 1 <= int(v) <= len(opts)) else "Pick a number from the list, or B.").lower()
+        base = browse_folder(os.path.expanduser("~")) if c == "b" else opts[int(c) - 1]["path"]
+        if base is None:
+            continue
+        name = ask("Name for the library folder", default="Media",
+                   validate=lambda v: None if re.fullmatch(r"[A-Za-z0-9 ._-]{1,64}", v) else "Use letters, numbers, spaces, dot, dash or underscore.")
+        path = os.path.join(base, name)
+        print(f"  {D}Your library will be at: {path}{R}")
+        return path
 
 
 def sec_paths(a, hw):
     header("2/8  Where should your library live?")
-    print("Pick a folder on the drive you want to use. Series and movies appear here as links to\n"
-          "your debrid account, so this folder stays small; the cache (asked later) is separate.")
-
-    def vp(v):
-        v = os.path.expanduser(v)
-        if not os.path.isabs(v):
-            return "Please give a full path, e.g. /mnt/media"
-        parent = v
-        while not os.path.exists(parent):
-            parent = os.path.dirname(parent)
-        return None if os.access(parent, os.W_OK) else f"{parent} isn't writable by you."
-
-    a["media_root"] = os.path.abspath(os.path.expanduser(ask("Library folder", validate=vp)))
-    a["stack_dir"] = os.path.abspath(os.path.expanduser(
-        ask("Where to keep the stack's settings", default="~/media-stack")))
-    tz = _guess_tz()
-    a["timezone"] = ask("Timezone", default=tz)
+    print("Series and movies appear here as links to your debrid account, so this folder stays small.\n"
+          "Pick the drive you want; the fast-cache choice comes later.")
+    a["media_root"] = pick_library_folder()
+    a["stack_dir"] = os.path.expanduser("~/media-stack")       # settings live here; no need to ask
+    a["timezone"] = _guess_tz()                                 # taken from this computer
     a["host_ip"] = hw["lan_ip"]
 
 
@@ -118,7 +179,7 @@ def _guess_tz():
 def sec_debrid(a):
     header("3/8  Debrid accounts")
     print("Real-Debrid, AllDebrid and TorBox are all supported. Add as many keys as you like, in any\n"
-          "mix; the first one is used first. You need at least one.")
+          "mix; the first one is used first. You need at least one. (Keys are shown as you paste them.)")
     keys = []
     while True:
         print(f"\n  1) {DEBRID['realdebrid']['label']}   2) {DEBRID['alldebrid']['label']}   "
@@ -249,7 +310,7 @@ def sec_confirm(a, hw):
           f"  Playback is set to direct play by default, so even an older CPU handles it.{R}\n")
     print(f"  Login:        {a['admin_user']}")
     print(f"  Library:      {a['media_root']}")
-    print(f"  Settings in:  {a['stack_dir']}")
+    print(f"  Settings in:  {a['stack_dir']}     Timezone: {a['timezone']}")
     print(f"  Debrid keys:  {', '.join(DEBRID[k['provider']]['label'] for k in a['debrid'])}")
     print(f"  Subtitles:    {', '.join(a['subtitles']) or 'skipped'}")
     print(f"  Arabic series (Arabarr): {'yes' if a['enable_arabarr'] else 'no'}")

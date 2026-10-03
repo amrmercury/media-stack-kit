@@ -188,6 +188,37 @@ def cache_candidates(benchmark=True):
     return out
 
 
+def drive_options():
+    """Places a library could live: the home folder plus every real drive the user can write to. No benchmark."""
+    home = os.path.expanduser("~")
+    mounts = _mounts()
+
+    def kind_of(path):
+        best = max((m for m in mounts if path == m or path.startswith(m.rstrip("/") + "/")), key=len, default="/")
+        dev = mounts.get(best, ("", ""))[0]
+        r = is_rotational(dev) if dev.startswith("/dev/") else None
+        return "hard drive" if r is True else "SSD" if r is False else "drive"
+
+    def free_gb(path):
+        try:
+            st = os.statvfs(path)
+            return st.f_bavail * st.f_frsize / 1024 ** 3
+        except OSError:
+            return 0.0
+
+    out = [{"label": "Home folder", "path": home, "free_gb": free_gb(home), "kind": kind_of(home)}]
+    for mp, (dev, fs) in sorted(mounts.items()):
+        if mp in ("/", "/home") or fs in _PSEUDO_FS or not dev.startswith("/dev/"):
+            continue
+        if any(mp.startswith(p) for p in ("/boot", "/snap", "/var", "/sys", "/proc", "/run/user", "/run/snapd")):
+            continue
+        if not os.access(mp, os.W_OK):
+            continue
+        out.append({"label": os.path.basename(mp.rstrip("/")) or mp, "path": mp,
+                    "free_gb": free_gb(mp), "kind": kind_of(mp)})
+    return out
+
+
 def detect():
     return {"ram_gb": round(ram_gb(), 1), "cpu": cpu(), "nic": nic(), "lan_ip": lan_ip()}
 

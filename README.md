@@ -16,7 +16,8 @@ You do **not** get anyone's library, history or accounts: the library starts emp
 It asks a few questions up front, then runs by itself:
 
 1. **A username + password.** Used in *every* app (Jellyfin, Jellyseerr, Sonarr, Radarr, Prowlarr, Bazarr, decypharr).
-2. **Where your library should live** (any folder on the drive you want).
+   Everything you type or paste is shown on screen, so you can check it.
+2. **Where your library should live**: pick a drive from a numbered menu, or browse to a folder. No paths to type.
 3. **Debrid keys**: Real-Debrid, AllDebrid and/or TorBox. Add as many as you like.
 4. **Other indexer accounts** (optional): ArabTorrents, ArabicSource. Skip any you don't have.
 5. **Arabic series** (optional): installs Arabarr. Needs your own ArabP2P account and a free TMDB API key (links are shown).

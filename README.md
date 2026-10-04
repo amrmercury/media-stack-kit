@@ -41,9 +41,10 @@ The installer page (taken from an automated test run on a clean machine, with fa
 | | |
 |---|---|
 | ![Welcome](docs/screenshots/1-welcome.png) | ![Login](docs/screenshots/2-login.png) |
-| ![Debrid](docs/screenshots/3-debrid.png) | ![Subtitles](docs/screenshots/4-subtitles.png) |
-| ![Cache](docs/screenshots/5-cache.png) | ![Review](docs/screenshots/6-review.png) |
-| ![Installing](docs/screenshots/7-installing.png) | ![Done](docs/screenshots/8-done.png) |
+| ![Library](docs/screenshots/3-library.png) | ![Debrid](docs/screenshots/4-debrid.png) |
+| ![Arabic series and movies](docs/screenshots/5-arabic.png) | ![Subtitles](docs/screenshots/6-subtitles.png) |
+| ![Cache](docs/screenshots/7-cache.png) | ![Review](docs/screenshots/8-review.png) |
+| ![Installing](docs/screenshots/9-installing.png) | ![Done](docs/screenshots/10-done.png) |
 
 ## What you have afterwards
 

@@ -103,6 +103,8 @@ def flow(page, srv, url):
     page.get_by_role("button", name="+ Add another key").click()
     page.locator("select").nth(1).select_option("torbox")
     page.get_by_placeholder("paste your key").nth(1).fill("FAKETORBOXKEY0123456789")
+    page.get_by_role("button", name="Back").click()           # re-enter the page so the earlier error box is gone for the picture
+    page.get_by_role("button", name="Next").click()
     shot(page, "debrid")
     page.get_by_role("button", name="Next").click()
 
@@ -120,6 +122,8 @@ def flow(page, srv, url):
     expect(page.locator("#card .err")).to_contain_text("Arabic title matching")
     fields = box.locator("input[type=text]")
     fields.nth(0).fill("cifake"); fields.nth(1).fill("fakepass1"); fields.nth(2).fill("0123456789abcdef0123456789abcdef")
+    page.get_by_role("button", name="Back").click()
+    page.get_by_role("button", name="Next").click()
     shot(page, "arabic")
     page.get_by_role("button", name="Next").click()
 

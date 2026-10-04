@@ -474,6 +474,40 @@ def radarr_post(path, body):
     with urllib.request.urlopen(req, timeout=60) as r:
         return json.load(r)
 
+def radarr_delete(path):
+    req = urllib.request.Request(f"{RADARR}/api/v3/{path}", headers={"X-Api-Key": RADARR_KEY}, method="DELETE")
+    with urllib.request.urlopen(req, timeout=60) as r:
+        return r.status
+
+# Second failure mode (a decypharr bug): when AllDebrid has to download a torrent first, decypharr finishes with 0 symlinks, so
+# Radarr is left with an empty folder ("No files found are eligible for import"). By then AllDebrid has the torrent cached, so
+# asking Radarr to grab the same release again works instantly. We drop the empty grab (without blocklisting it) and search again.
+RETRY_MAX = int(E("ARABARR_RETRY_MAX", "2"))
+_empty_seen = {}                       # downloadId -> consecutive checks seen empty
+_warned = set()
+_empty_retries = {}                    # movieId -> times we re-searched
+
+def stuck_empty(rec):
+    if rec.get("indexer") != "Arabarr" or not rec.get("downloadId") or not rec.get("movieId") or not rec.get("id"):
+        return False
+    if rec.get("trackedDownloadState") not in ("importPending", "importBlocked", "importing"):
+        return False
+    msgs = " ".join(m for sm in rec.get("statusMessages") or [] for m in sm.get("messages") or []).lower()
+    return "no files found" in msgs or "eligible for import" in msgs
+
+def retry_empty(rec, post, delete):
+    """Two sightings in a row (so a slow mount isn't mistaken for the bug), then remove + search again, at most RETRY_MAX times."""
+    seen = _empty_seen.get(rec["downloadId"], 0) + 1
+    _empty_seen[rec["downloadId"]] = seen
+    if seen < 2 or _empty_retries.get(rec["movieId"], 0) >= RETRY_MAX:
+        return False
+    _empty_retries[rec["movieId"]] = _empty_retries.get(rec["movieId"], 0) + 1
+    delete(f"queue/{rec['id']}?removeFromClient=true&blocklist=false&skipRedownload=true")
+    post("command", {"name": "MoviesSearch", "movieIds": [rec["movieId"]]})
+    log(f"[retry] {rec.get('title')}: decypharr made no symlinks; removed it and searched again "
+        f"({_empty_retries[rec['movieId']]}/{RETRY_MAX})")
+    return True
+
 def stuck_unparsable(rec):
     """A queue record that is one of our grabs, finished downloading, and waiting only because Radarr can't parse the name."""
     if rec.get("indexer") != "Arabarr" or not rec.get("downloadId") or not rec.get("movieId") or not rec.get("outputPath"):
@@ -494,11 +528,21 @@ def manual_import_files(rec, found):
                     "downloadId": rec["downloadId"]})
     return out
 
-def hand_over_stuck(now=None, get=None, post=None):
-    get, post, now = get or radarr, post or radarr_post, now or time.time()
+def hand_over_stuck(now=None, get=None, post=None, delete=None):
+    get, post, now, delete = get or radarr, post or radarr_post, now or time.time(), delete or radarr_delete
     done = 0
-    for rec in get("queue?pageSize=100&includeMovie=false").get("records", []):
+    records = get("queue?pageSize=100&includeMovie=false").get("records", [])
+    for gone in set(_empty_seen) - {r.get("downloadId") for r in records}:
+        _empty_seen.pop(gone, None)
+    for rec in records:
+        if stuck_empty(rec):
+            done += retry_empty(rec, post, delete)
+            continue
+        _empty_seen.pop(rec.get("downloadId"), None)
         if not stuck_unparsable(rec):
+            if rec.get("indexer") == "Arabarr" and rec.get("trackedDownloadStatus") == "warning" and rec["downloadId"] not in _warned:
+                _warned.add(rec["downloadId"])        # an unknown stuck state: leave a trace so the rule can be extended
+                log(f"[import] note: {rec.get('title')} is waiting in Radarr: {[sm.get('messages') for sm in rec.get('statusMessages') or []]}")
             continue
         tries, last = _import_tries.get(rec["downloadId"], (0, 0))
         if tries >= IMPORT_MAX_TRIES or now - last < IMPORT_RETRY_GAP:

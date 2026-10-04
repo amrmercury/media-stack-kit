@@ -8,6 +8,8 @@ PROWLARR_KEY = E("PROWLARR_API_KEY", "")
 INDEXER_ID = E("ARABP2P_INDEXER_ID", "")
 SONARR = E("SONARR_URL", "").rstrip("/")
 SONARR_KEY = E("SONARR_API_KEY", "")
+RADARR = E("RADARR_URL", "").rstrip("/")          # optional: set both to enable Arabic MOVIES for Radarr
+RADARR_KEY = E("RADARR_API_KEY", "")
 TMDB_KEY = E("TMDB_API_KEY", "")
 PROXY_KEY = E("PROXY_API_KEY", "")
 PORT = int(E("PORT", "5010"))
@@ -25,8 +27,8 @@ CAPS = b"""<?xml version="1.0" encoding="UTF-8"?>
 <caps><server title="Arabarr"/><limits default="100" max="100"/>
 <searching><search available="yes" supportedParams="q"/>
 <tv-search available="yes" supportedParams="q,season,ep,tvdbid"/>
-<movie-search available="no" supportedParams="q"/></searching>
-<categories><category id="5000" name="TV"/></categories></caps>"""
+<movie-search available="yes" supportedParams="q,imdbid,tmdbid"/></searching>
+<categories><category id="2000" name="Movies"/><category id="5000" name="TV"/></categories></caps>"""
 EMPTY = b'<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>Arabarr</title></channel></rss>'
 
 def log(*a):
@@ -145,6 +147,9 @@ def rename(orig, names, single_season=False):
 def sonarr(path):
     return fetch(f"{SONARR}/api/v3/{path}", {"X-Api-Key": SONARR_KEY})
 
+def radarr(path):
+    return fetch(f"{RADARR}/api/v3/{path}", {"X-Api-Key": RADARR_KEY})
+
 def tmdb(path, **q):
     q["api_key"] = TMDB_KEY
     return fetch(f"https://api.themoviedb.org/3/{path}?{urllib.parse.urlencode(q)}")
@@ -206,8 +211,11 @@ def arabic_names(s):
         return manual_names + tmdb_names  # manual overrides take priority
     return cached(("names", s["tvdbId"]), 21600, load)
 
-def prowlarr(q):
-    qs = urllib.parse.urlencode({"apikey": PROWLARR_KEY, "t": "search", "q": q, "limit": 100})
+def prowlarr(q, cat=None):
+    args = {"apikey": PROWLARR_KEY, "t": "search", "q": q, "limit": 100}
+    if cat:
+        args["cat"] = cat
+    qs = urllib.parse.urlencode(args)
     return ET.fromstring(fetch(f"{PROWLARR}/{INDEXER_ID}/api?{qs}", raw=True))
 
 # ---------- ArabP2P direct (dubbed-anime category only) ----------
@@ -304,6 +312,152 @@ def ap2p_download(rel):
         with _ap2p_opener.open(req, timeout=60) as r:
             return r.read()
 
+# ---------- movies (Radarr) ----------
+# Same method as series: find the movie in Radarr, get its Arabic titles from TMDB (plus name_overrides.json under
+# "tmdb:<tmdbId>"), search ArabP2P (movie category) by those titles, and rewrite matching releases into a title Radarr can
+# parse: "<English title> (<year>) <resolution> <source> <codec> <tag>-ArabP2P".
+YEAR_RE = re.compile(r"(?<!\d)(19\d{2}|20\d{2})(?!\d)")
+
+def find_movie(tmdbid=None, imdbid=None, q=None):
+    digits = lambda x: re.sub(r"\D", "", str(x or ""))
+    key = re.sub(r"[^a-z0-9]", "", (q or "").lower())
+    for attempt in range(2):
+        if attempt:
+            _cache.pop("movies", None)
+        for m in cached("movies", 600, lambda: radarr("movie")):
+            if tmdbid and str(m.get("tmdbId")) == str(tmdbid):
+                return m
+            if imdbid and not tmdbid and digits(m.get("imdbId")) == digits(imdbid):
+                return m
+            if key and not tmdbid and not imdbid:
+                titles = [m.get("title", "")] + [a.get("title", "") for a in m.get("alternateTitles") or []]
+                if any(re.sub(r"[^a-z0-9]", "", x.lower()) == key for x in titles):
+                    return m
+    return None
+
+def _uniq_ar(cands):
+    uniq = {}
+    for c in cands:
+        if has_ar(c) and norm(c).strip():
+            uniq.setdefault(norm(c), c)
+    return sorted(uniq.values(), key=len, reverse=True)
+
+def arabic_names_movie(m):
+    def load():
+        manual = load_overrides().get("tmdb:%s" % m.get("tmdbId"), [])
+        cands = [a.get("title") for a in m.get("alternateTitles") or []]
+        tid = m.get("tmdbId") or 0
+        if tid:
+            d = tmdb(f"movie/{tid}", append_to_response="alternative_titles,translations")
+            cands += [d.get("original_title"), d.get("title")]
+            cands += [x.get("title") for x in (d.get("alternative_titles") or {}).get("titles", [])]
+            cands += [(x.get("data") or {}).get("title") for x in (d.get("translations") or {}).get("translations", [])
+                      if x.get("iso_639_1") == "ar"]
+        manual_names = _uniq_ar(manual)
+        seen = {norm(n) for n in manual_names}
+        return manual_names + [n for n in _uniq_ar(cands) if norm(n) not in seen]   # manual overrides first
+    return cached(("mnames", m.get("tmdbId")), 21600, load)
+
+def movie_source(orig):
+    if re.search(r"blu-?ray|br-?rip|bd-?rip|bdremux", orig, re.I):
+        return "BluRay"
+    if re.search(r"dvd-?rip|dvd", orig, re.I):
+        return "DVD"
+    if re.search(r"tv-?rip|hdtv", orig, re.I):
+        return "HDTV"
+    return "WEB-DL"
+
+def rename_movie(orig, mapping):
+    """mapping: [(normalised arabic name, radarr movie)]. Returns the Radarr-friendly title, or None to drop."""
+    n = norm(orig)
+    if " خلف الكواليس " in n:
+        return None
+    for ar, m in mapping:
+        if not ar.strip() or ar not in n:
+            continue
+        year = m.get("year") or 0
+        found = [int(y) for y in YEAR_RE.findall(orig)]
+        if found and year and not any(abs(y - year) <= 1 for y in found):
+            continue                                 # same Arabic name, different film (remake/sequel)
+        tag = dub_tag(orig)
+        if tag is None:
+            return None
+        if parse(orig):
+            return None                              # has season/episode markers: that's a series, not a movie
+        res = re.search(r"(2160|1080|720|576|480)p", orig, re.I)
+        codec = "H265" if re.search(r"[hx]\.?265|hevc", orig, re.I) else "H264" if re.search(r"[hx]\.?264", orig, re.I) else ""
+        title = re.sub(r"[\[\]:/\\]", " ", m.get("title") or "")
+        parts = [title + (" (%d)" % year if year else ""), res.group(0).lower() if res else "",
+                 movie_source(orig), codec, tag]
+        return " ".join(" ".join(parts).split()) + "-ArabP2P"
+    return None
+
+def feed_movie(queries, mapping, keep_unmatched, label):
+    root = chan = None
+    seen, kept = set(), 0
+    for q in queries:
+        r = prowlarr(q, cat="2000")
+        ch = r.find("channel")
+        items = ch.findall("item")
+        if root is None:
+            root, chan = r, ch
+            for it in items:
+                ch.remove(it)
+        for it in items:
+            key = it.findtext("guid") or it.findtext("link") or it.findtext("title")
+            if key in seen:
+                continue
+            seen.add(key)
+            orig = it.findtext("title") or ""
+            new = rename_movie(orig, mapping)
+            if new:
+                it.find("title").text = new
+                chan.append(it)
+                kept += 1
+                log(f"[{label}] {orig}  =>  {new}")
+            elif keep_unmatched:
+                g = it.find("guid")                  # see feed(): unmatched RSS items must not shadow a later real match
+                if g is not None and g.text:
+                    g.text = "rss-unmatched:" + g.text
+                chan.append(it)
+            else:
+                log(f"[{label}] skip: {orig}")
+    log(f"[{label}] {kept} release(s) renamed")
+    return ET.tostring(root, encoding="utf-8", xml_declaration=True)
+
+def rss_map_movies():
+    def load():
+        m = []
+        for mv in cached("movies", 600, lambda: radarr("movie")):
+            if (mv.get("originalLanguage") or {}).get("name") != "Arabic":
+                continue
+            try:
+                m += [(norm(n), mv) for n in arabic_names_movie(mv)]
+            except Exception as e:
+                log("TMDB error for", mv.get("title"), e)
+        return sorted(m, key=lambda x: -len(x[0]))
+    return cached("rssmap-movies", 3600, load)
+
+def search_movie(p):
+    if not RADARR:
+        log("movie search ignored: RADARR_URL is not set")
+        return EMPTY
+    if int(p.get("offset") or 0) > 0:
+        return EMPTY
+    tmdbid, imdbid, q = p.get("tmdbid"), p.get("imdbid"), (p.get("q") or "").strip()
+    if tmdbid or imdbid or q:
+        m = find_movie(tmdbid=tmdbid, imdbid=imdbid, q=q)
+        if not m:
+            log(f"movie search {tmdbid or imdbid or q}: not in Radarr")
+            return EMPTY
+        names = arabic_names_movie(m)
+        if not names:
+            log(f"movie search {m['title']}: no Arabic title on TMDB")
+            return EMPTY
+        return feed_movie(names, [(norm(n), m) for n in names], False, m["title"])
+    # blank query = Radarr's RSS sync and its indexer "test": see search() for why unmatched items are kept
+    return feed_movie([""], rss_map_movies(), True, "RSS-movies")
+
 # ---------- torznab ----------
 def feed(queries, names, keep_unmatched, label, single_season=False):
     root = chan = None
@@ -388,6 +542,16 @@ def search(p):
 
 def debug(p):
     lines = []
+    if p.get("tmdbid"):
+        m = find_movie(tmdbid=p["tmdbid"]) if RADARR else None
+        lines.append(f"Radarr: {m['title'] + ' (%s)' % m.get('year') if m else 'NOT FOUND (or RADARR_URL not set)'}")
+        if m:
+            lines.append("TMDB Arabic titles: " + (" | ".join(arabic_names_movie(m)) or "NONE"))
+    if p.get("mname"):
+        mv = {"title": p.get("mtitle") or "English Title", "year": int(p.get("myear") or 0)}
+        for it in prowlarr(p["mname"], cat="2000").find("channel").findall("item"):
+            o = it.findtext("title") or ""
+            lines.append(f"{o}\n    => {rename_movie(o, [(norm(p['mname']), mv)]) or 'SKIP'}")
     if p.get("tvdbid"):
         s = find_series(tvdbid=p["tvdbid"])
         lines.append(f"Sonarr: {s['title'] if s else 'NOT FOUND'}")
@@ -398,7 +562,7 @@ def debug(p):
         for it in prowlarr(p["name"]).find("channel").findall("item"):
             o = it.findtext("title") or ""
             lines.append(f"{o}\n    => {rename(o, names) or 'SKIP'}")
-    return "\n".join(lines) or "Use /debug?name=ARABIC&title=ENGLISH or /debug?tvdbid=ID"
+    return "\n".join(lines) or "Use /debug?name=ARABIC&title=ENGLISH or /debug?tvdbid=ID  (movies: /debug?tmdbid=ID or /debug?mname=ARABIC&mtitle=ENGLISH&myear=2020)"
 
 def err(code, desc):
     return f'<?xml version="1.0" encoding="UTF-8"?><error code="{code}" description="{desc}"/>'.encode()
@@ -422,12 +586,17 @@ class Handler(BaseHTTPRequestHandler):
                     ar = len([1 for x in rss_map()])
                 except Exception:
                     n, ar = "?", "?"
+                try:
+                    mv = len(cached("movies", 600, lambda: radarr("movie"))) if RADARR else None
+                except Exception:
+                    mv = "?"
                 html = ("<html><head><title>Arabarr</title>"
                         "<meta http-equiv=refresh content=30>"
                         "<style>body{font-family:sans-serif;background:#1a1a1a;color:#eee;padding:2em}"
                         "h1{color:#e8a03c}.ok{color:#4caf50}</style></head><body>"
                         "<h1>Arabarr</h1><p class=ok>&#9679; running</p>"
                         f"<p>Series in Sonarr: {n}</p>"
+                        + (f"<p>Movies in Radarr: {mv}</p>" if mv is not None else "") +
                         f"<p>Arabic title mappings loaded: {ar}</p>"
                         "<p>Tail the log for live matches: <code>docker logs -f arabarr</code></p>"
                         "</body></html>")
@@ -449,6 +618,8 @@ class Handler(BaseHTTPRequestHandler):
             t = p.get("t")
             if t == "caps":
                 return self.reply(CAPS)
+            if t == "movie":
+                return self.reply(search_movie(p))
             if t in ("search", "tvsearch"):
                 return self.reply(search(p))
             return self.reply(err(202, "Not supported"))

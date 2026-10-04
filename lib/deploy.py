@@ -191,7 +191,7 @@ def main():
 
     step("Sonarr + Radarr")
     seed_sonarr_radarr(sonarr, "sonarr", a, S, jfkey, arabarr)
-    seed_sonarr_radarr(radarr, "radarr", a, S, jfkey)
+    seed_sonarr_radarr(radarr, "radarr", a, S, jfkey, arabarr)
     wait_indexers_synced(sonarr, 5)
     wait_indexers_synced(radarr, 5)
 

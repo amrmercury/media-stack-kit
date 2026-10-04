@@ -1,1 +1,34 @@
-[]
+[
+  {
+    "configContract": "TorznabSettings",
+    "downloadClientId": 0,
+    "enableAutomaticSearch": true,
+    "enableInteractiveSearch": true,
+    "enableRss": true,
+    "fields": {
+      "additionalParameters": null,
+      "apiKey": null,
+      "apiPath": "/api",
+      "baseUrl": "http://__HOST__:5011",
+      "categories": [
+        2000
+      ],
+      "failDownloads": [],
+      "minimumSeeders": 1,
+      "multiLanguages": [],
+      "rejectBlocklistedTorrentHashesWhileGrabbing": false,
+      "removeYear": false,
+      "requiredFlags": [],
+      "seedCriteria.seedRatio": null,
+      "seedCriteria.seedTime": null
+    },
+    "implementation": "Torznab",
+    "implementationName": "Torznab",
+    "name": "Arabarr",
+    "priority": 25,
+    "protocol": "torrent",
+    "supportsRss": true,
+    "supportsSearch": true,
+    "tags": []
+  }
+]

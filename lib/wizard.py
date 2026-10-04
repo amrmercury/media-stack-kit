@@ -59,7 +59,7 @@ def header(t):
 
 # ---------------------------------------------------------------- sections
 def sec_account(a):
-    header("1/8  Your login")
+    header("1/7  Your login")
     print("One username + password for the whole stack (Jellyfin, Jellyseerr, Sonarr, Radarr,\n"
           "Prowlarr, Bazarr, decypharr). The installer sets it in every app for you.")
 
@@ -72,7 +72,7 @@ def sec_account(a):
     def vp(v):
         return None if len(v) >= 8 else "Use at least 8 characters."
 
-    a["admin_pass"] = ask("Password (you'll see it as you type)", validate=vp)
+    a["admin_pass"] = ask("Password", validate=vp)
 
 
 def _fmt_free(gb):
@@ -154,7 +154,7 @@ def pick_library_folder():
 
 
 def sec_paths(a, hw):
-    header("2/8  Where should your library live?")
+    header("2/7  Where should your library live?")
     print("Series and movies appear here as links to your debrid account, so this folder stays small.\n"
           "Pick the drive you want; the fast-cache choice comes later.")
     a["media_root"] = pick_library_folder()
@@ -177,7 +177,7 @@ def _guess_tz():
 
 
 def sec_debrid(a):
-    header("3/8  Debrid accounts")
+    header("3/7  Debrid accounts")
     print("Real-Debrid, AllDebrid and TorBox are all supported. Add as many keys as you like, in any\n"
           "mix; the first one is used first. You need at least one. (Keys are shown as you paste them.)")
     keys = []
@@ -199,7 +199,6 @@ def sec_debrid(a):
 
 
 def sec_indexers(a):
-    header("4/8  ArabicSource (optional)")
     print("Most indexers need nothing (ArabTorrents works without an account, so it's simply on). ArabicSource needs an\n"
           "API key from your own account. Press Enter to skip; a skipped indexer is simply left switched off.")
     idx = {}
@@ -211,8 +210,7 @@ def sec_indexers(a):
 
 
 def sec_arabic(a):
-    header("5/8  Arabic series (optional)")
-    print("If you want Arabic series in your library, set up Arabarr. It needs YOUR OWN free account on ArabP2P\n"
+    print("If you want Arabic series and movies in your library, set up Arabarr. It needs YOUR OWN free account on ArabP2P\n"
           "and a free API key from TMDB. (Please don't share one person's tracker account: trackers can ban\n"
           "accounts that log in from several places.)")
     a["enable_arabarr"] = False
@@ -222,7 +220,7 @@ def sec_arabic(a):
           f"      Sign up for free at: https://www.arabp2p.net/index.php?page=signup")
     u = ask("      Username (or type S to skip Arabarr)")
     if u.lower() == "s":
-        warn("Skipped: no Arabic series setup. Re-run the installer any time to add it.")
+        warn("Skipped: no Arabarr setup. Re-run the installer any time to add it.")
         return
     pw = ask("      Password", secret=True)
     print(f"\n{B}TMDB API key{R}  (Arabarr uses it to match Arabic titles)\n"
@@ -230,7 +228,7 @@ def sec_arabic(a):
           f"      Create your API key at: https://www.themoviedb.org/settings/api")
     k = ask("      API key (or type S to skip Arabarr)", secret=True)
     if k.lower() == "s":
-        warn("Skipped: no Arabic series setup. Re-run the installer any time to add it.")
+        warn("Skipped: no Arabarr setup. Re-run the installer any time to add it.")
         return
     a["indexer_accounts"]["arabp2p"] = {"username": u, "password": pw}   # same account feeds the ArabP2P indexer
     a["tmdb_api_key"] = k
@@ -238,7 +236,7 @@ def sec_arabic(a):
 
 
 def sec_subtitles(a):
-    header("6/8  Subtitles (English + Arabic)")
+    header("5/7  Subtitles (English + Arabic)")
     print("Bazarr downloads subtitles from the providers you set up here. All are free to sign up.\n"
           f"{Y}OpenSubtitles free accounts are capped at 20 subtitles/day. Subsource and SubDL have no daily\n"
           f"limit and are the best Arabic sources, so adding all three is recommended.{R}")
@@ -265,7 +263,7 @@ def sec_subtitles(a):
 
 
 def sec_cache(a, hw):
-    header("7/8  Cache (optional speed-up)")
+    header("6/7  Cache (optional speed-up)")
     print("A cache keeps recently watched files on a local drive so replays, seeking and several people watching\n"
           "at once stay smooth. Turning it on also switches your debrid mount to the faster DFS engine (tested:\n"
           "quicker cold reads, re-reads and seeks, better with several streams, far less RAM). Playback works fine\n"
@@ -298,7 +296,7 @@ def sec_cache(a, hw):
 
 
 def sec_confirm(a, hw):
-    header("8/8  Review")
+    header("7/7  Review")
     nic = hw["nic"]
     link = ("wired " + (f"{nic['speed_mbps']} Mbps" if nic["speed_mbps"] else "")) if nic["wired"] else "Wi-Fi"
     print(f"  This machine: {hw['cpu']['model']} · {hw['ram_gb']} GB RAM · network: {link}")
@@ -324,6 +322,7 @@ def run_interactive():
         sec_account(a)
         sec_paths(a, hw)
         sec_debrid(a)
+        header("4/7  Arabic series and movies (optional, skip if you only watch English)")
         sec_indexers(a)
         sec_arabic(a)
         sec_subtitles(a)

@@ -256,6 +256,7 @@ def render_all(a, state_dir, force=False):
                        "PROWLARR_URL=http://prowlarr:9696", f"PROWLARR_API_KEY={S['prowlarr']}",
                        "ARABP2P_INDEXER_ID=__SET_BY_INSTALLER__",
                        "SONARR_URL=http://sonarr:8989", f"SONARR_API_KEY={S['sonarr']}",
+                       "RADARR_URL=http://radarr:7878", f"RADARR_API_KEY={S['radarr']}",
                        f"PROXY_API_KEY={S['arabarr_proxy']}", f"TMDB_API_KEY={a['tmdb_api_key']}",
                        "PORT=5011", "ARABARR_BASE_URL=http://arabarr:5011",
                        f"ARABP2P_USERNAME={idx['username']}", f"ARABP2P_PASSWORD={idx['password']}", ""]),

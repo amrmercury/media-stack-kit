@@ -50,23 +50,37 @@ test("debrid needs at least one key; blank rows are ignored in the payload", () 
 test("optional sections only validate when switched on", () => {
   run("S = freshState()");
   for (const i of [4, 5, 6]) assert.strictEqual(run("validateStep(" + i + ").length"), 0);
-  run("S.arabic.on=true"); assert.strictEqual(run("validateStep(5).length"), 1);
-  run("S.arabic.username='u'; S.arabic.password='p'; S.arabic.tmdb='k'"); assert.strictEqual(run("validateStep(5).length"), 0);
-  run("S.subs.opensubtitlescom.on=true"); assert.strictEqual(run("validateStep(6).length"), 1);
-  run("S.subs.opensubtitlescom.username='me'; S.subs.opensubtitlescom.password='pw'"); assert.strictEqual(run("validateStep(6).length"), 0);
+  run("S.arabic.on=true"); assert.strictEqual(run("validateStep(4).length"), 1);
+  run("S.arabic.username='u'; S.arabic.password='p'; S.arabic.tmdb='k'"); assert.strictEqual(run("validateStep(4).length"), 0);
   run("S.arabicsource.on=true"); assert.strictEqual(run("validateStep(4).length"), 1);
   run("S.arabicsource.apikey='K'"); assert.strictEqual(run("validateStep(4).length"), 0);
+  run("S.subs.opensubtitlescom.on=true"); assert.strictEqual(run("validateStep(5).length"), 1);
+  run("S.subs.opensubtitlescom.username='me'; S.subs.opensubtitlescom.password='pw'"); assert.strictEqual(run("validateStep(5).length"), 0);
 });
 
 test("cache choice: size must fit the drive", () => {
   run("S = freshState(); S.cache={candidates:[{mount:'/',dir:'/home/u',free_gb:400,iops:9000,suggested_gb:200}],min_free_gb:40}; S.cache_choice=0; S.cache_size=200");
-  assert.strictEqual(run("validateStep(7).length"), 0);
-  run("S.cache_size=900"); assert.strictEqual(run("validateStep(7).length"), 1);
-  run("S.cache_size=2"); assert.strictEqual(run("validateStep(7).length"), 1);
-  run("S.cache_choice=-1"); assert.strictEqual(run("validateStep(7).length"), 0);
+  assert.strictEqual(run("validateStep(6).length"), 0);
+  run("S.cache_size=900"); assert.strictEqual(run("validateStep(6).length"), 1);
+  run("S.cache_size=2"); assert.strictEqual(run("validateStep(6).length"), 1);
+  run("S.cache_choice=-1"); assert.strictEqual(run("validateStep(6).length"), 0);
   const p = JSON.parse(JSON.stringify(run("S.cache_choice=0; S.cache_size=150; buildPayload()")));
   assert.deepStrictEqual(p.cache, {dir: "/home/u", size_gb: 150});
   assert.deepStrictEqual(JSON.parse(JSON.stringify(run("S.cache_choice=-1; buildPayload().cache"))), {});
+});
+
+test("skip clears the step's answers and moves on without validating", () => {
+  run("render = () => {}; window = {scrollTo() {}}; loadCache = () => {}; S = freshState(); S.step=4; S.arabic.on=true; S.arabicsource.on=true; skipStep()");
+  assert.strictEqual(run("S.step"), 5); assert.strictEqual(run("S.arabic.on"), false); assert.strictEqual(run("S.arabicsource.on"), false);
+  run("S.subs.subdl.on=true; skipStep()");
+  assert.strictEqual(run("S.step"), 6); assert.strictEqual(run("S.subs.subdl.on"), false);
+  assert.deepStrictEqual(JSON.parse(run("JSON.stringify(SKIPPABLE)")), [4, 5, 6]);
+});
+
+test("login label has no 'as you type' text and debrid row is one grid line", () => {
+  run("S = freshState(); S.init=" + JSON.stringify(init));
+  assert.ok(!/as you type/.test(run("PAGES[1]()")));
+  assert.ok(run("PAGES[3]()").includes('class="drow"'));
 });
 
 test("applySaved restores a previous answers file", () => {
@@ -93,7 +107,7 @@ test("every page renders without errors, in several states, with no 'undefined'/
   ];
   for (const s of states) {
     run(s);
-    for (let i = 0; i < 9; i++) {
+    for (let i = 0; i < 8; i++) {
       const out = run("PAGES[" + i + "]()");
       assert.strictEqual(typeof out, "string");
       assert.ok(out.length > 50, "page " + i + " too short");
@@ -105,7 +119,7 @@ test("every page renders without errors, in several states, with no 'undefined'/
 test("user-typed text is escaped everywhere it is echoed (no HTML injection)", () => {
   run("S = freshState(); S.init=" + JSON.stringify(init));
   run("S.admin_user='<img src=x onerror=alert(1)>'; S.admin_pass='\"><script>x</script>'; S.library.base='/a\"b'; S.library.name='<b>'");
-  for (const i of [1, 2, 8]) {
+  for (const i of [1, 2, 7]) {
     const out = run("PAGES[" + i + "]()");
     assert.ok(!/<img src=x/.test(out) && !/<script>x/.test(out) && !/<b>[^<]*<\/b>'?$/.test("") , "page " + i + " leaked raw HTML");
     assert.ok(!out.includes('"><script>'), "page " + i + " leaked a script tag");

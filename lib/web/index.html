@@ -47,6 +47,12 @@ button.link{border:none;background:none;color:var(--blue-deep);padding:4px 2px}
 button.link:hover{background:none;text-decoration:underline}
 button:disabled{opacity:.5;cursor:default}
 .nav{display:flex;justify-content:space-between;margin-top:24px;gap:10px}
+.navr{display:flex;gap:10px}
+.drow{display:grid;grid-template-columns:190px 1fr auto;gap:10px;align-items:end;margin-top:8px}
+.drow .f{margin:0}
+.drow .rm{min-height:40px;display:flex;align-items:center}
+.dh{display:block;margin:4px 0 6px}
+@media(max-width:640px){.drow{grid-template-columns:1fr}}
 .err{background:var(--bad-bg);border:1px solid var(--bad);color:var(--bad);border-radius:12px;padding:10px 14px;margin:14px 0}
 .err ul{margin:4px 0 0 18px;padding:0}
 .note{background:var(--blue-soft);border-left:4px solid var(--blue);border-radius:10px;padding:10px 14px;margin:12px 0;font-size:14px}
@@ -113,7 +119,9 @@ code,.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;back
 const TOKEN = "__TOKEN__";
 
 /* ============================================================ state + pure logic (unit-tested in Node) */
-const STEPS = ["Welcome", "Login", "Library", "Debrid", "ArabicSource", "Arabic", "Subtitles", "Cache", "Review"];
+const STEPS = ["Welcome", "Login", "Library", "Debrid", "Arabic series", "Subtitles", "Cache", "Review"];
+const STEP = {login: 1, library: 2, debrid: 3, arabic: 4, subs: 5, cache: 6, review: 7};
+const SKIPPABLE = [STEP.arabic, STEP.subs, STEP.cache];
 const PROVIDERS = {
   realdebrid: {label: "Real-Debrid", hint: "Get your key at real-debrid.com/apitoken", url: "https://real-debrid.com/apitoken"},
   alldebrid:  {label: "AllDebrid",   hint: "Get your key at alldebrid.com/apikeys",     url: "https://alldebrid.com/apikeys"},
@@ -156,20 +164,17 @@ function validateStep(i, st) {
     if (!st.debrid.some(d => d.api_key.trim())) e.push("Add at least one debrid key.");
   }
   if (i === 4) {
-    const b = st.arabicsource;
+    const b = st.arabicsource, a = st.arabic;
     if (b.on && !b.apikey.trim()) e.push("ArabicSource: enter the API key, or turn it off.");
+    if (a.on && (!a.username.trim() || !a.password || !a.tmdb.trim())) e.push("Arabic title matching needs the ArabP2P username + password and a TMDB API key, or turn it off.");
   }
   if (i === 5) {
-    const a = st.arabic;
-    if (a.on && (!a.username.trim() || !a.password || !a.tmdb.trim())) e.push("Arabic series needs the ArabP2P username + password and a TMDB API key, or turn it off.");
-  }
-  if (i === 6) {
     const s = st.subs;
     if (s.opensubtitlescom.on && (!s.opensubtitlescom.username.trim() || !s.opensubtitlescom.password)) e.push("OpenSubtitles: enter your username and password, or turn it off.");
     if (s.subsource.on && !s.subsource.apikey.trim()) e.push("Subsource: enter the API key, or turn it off.");
     if (s.subdl.on && !s.subdl.api_key.trim()) e.push("SubDL: enter the API key, or turn it off.");
   }
-  if (i === 7 && st.cache_choice >= 0 && st.cache) {
+  if (i === 6 && st.cache_choice >= 0 && st.cache) {
     const c = st.cache.candidates[st.cache_choice];
     const n = Number(st.cache_size);
     if (!c) e.push("Pick a drive for the cache, or choose no cache.");
@@ -245,12 +250,12 @@ const PAGES = [
       (hw ? "<div class='note'><b>This computer:</b> " + esc(hw.cpu.model) + " · " + esc(hw.ram_gb) + " GB RAM · network: " + esc(net) +
         "<br><span class='hint'>4K remux files are large (50-100+ Mbps): a wired connection is best, fast Wi-Fi also works. Playback is direct-play by default, so even an older CPU is fine.</span></div>" : "") +
       (S.init && S.init.saved ? "<div class='opt sel'><b>You've run this installer before.</b><p class='hint'>Reuse your previous answers. You'll only re-confirm the cache and review them before installing.</p><button onclick='useSaved()'>Use my previous answers</button></div>" : "") +
-      "<h2>You'll need</h2><ul><li>A debrid account key (Real-Debrid, AllDebrid and/or TorBox)</li><li>Optional: subtitle accounts (OpenSubtitles, Subsource, SubDL)</li><li>Optional: an ArabP2P account and a TMDB key for Arabic series</li></ul>";
+      "<h2>You'll need</h2><ul><li>A debrid account key (Real-Debrid, AllDebrid and/or TorBox)</li><li>Optional: subtitle accounts (OpenSubtitles, Subsource, SubDL)</li><li>Optional: an ArabP2P account and a TMDB key for Arabic series and movies</li></ul>";
   },
   function login() {
     return "<h1>Your login</h1><p class='lead'>One username and password for the whole stack (Jellyfin, Jellyseerr, Sonarr, Radarr, Prowlarr, Bazarr, decypharr). The installer sets it in every app for you.</p>" +
       '<label class="f"><span>Username</span>' + textInput("admin_user", "e.g. alex") + '<small class="hint">3-32 characters: letters, numbers, dot, dash, underscore (no spaces or @).</small></label>' +
-      '<label class="f"><span>Password (you can see it as you type)</span>' + secretInput("admin_pass", "at least 8 characters") + "</label>" + showHideBtn();
+      '<label class="f"><span>Password</span>' + secretInput("admin_pass", "at least 8 characters") + "</label>" + showHideBtn();
   },
   function library() {
     const drives = S.init ? S.init.drives : [];
@@ -263,25 +268,23 @@ const PAGES = [
       (S.library.base ? "<div class='note'>Your library will be at: <code>" + esc(fullPath()) + "</code></div>" : "");
   },
   function debrid() {
-    const rows = S.debrid.map((d, i) => '<div class="row"><label class="f" style="max-width:190px"><span>Service</span><select onchange="setv(\'debrid.' + i + '.provider\',this.value);render()">' +
+    const rows = S.debrid.map((d, i) => '<div class="drow"><label class="f"><span>Service</span><select onchange="setv(\'debrid.' + i + '.provider\',this.value);render()">' +
       Object.keys(PROVIDERS).map(k => '<option value="' + k + '"' + (d.provider === k ? " selected" : "") + ">" + PROVIDERS[k].label + "</option>").join("") +
-      '</select></label><label class="f"><span>API key</span>' + secretInput("debrid." + i + ".api_key", "paste your key") + '<small class="hint">' + esc(PROVIDERS[d.provider].hint) +
-      '</small></label>' + (S.debrid.length > 1 ? '<button class="link" onclick="S.debrid.splice(' + i + ',1);render()">Remove</button>' : "") + "</div>").join("");
+      '</select></label><label class="f"><span>API key</span>' + secretInput("debrid." + i + ".api_key", "paste your key") + '</label>' +
+      '<div class="rm">' + (S.debrid.length > 1 ? '<button class="link" onclick="S.debrid.splice(' + i + ',1);render()">Remove</button>' : "") + "</div></div>" +
+      '<small class="hint dh">' + esc(PROVIDERS[d.provider].hint) + "</small>").join("");
     return "<h1>Debrid accounts</h1><p class='lead'>Real-Debrid, AllDebrid and TorBox are all supported. Add as many keys as you like, in any mix; the first is used first. You need at least one.</p>" +
       rows + '<button onclick="S.debrid.push({provider:\'realdebrid\',api_key:\'\'});render()">+ Add another key</button> ' + showHideBtn();
   },
-  function indexers() {
-    return "<h1>ArabicSource (optional)</h1><p class='lead'>Most indexers need nothing, and ArabTorrents works without an account, so it is simply switched on. ArabicSource needs an API key from your own account. Leave it off to skip.</p>" +
-      toggle("arabicsource", "ArabicSource", "I have an account at arabicsource.net",
-        '<label class="f"><span>API key</span>' + secretInput("arabicsource.apikey") + '<small class="hint">On the site: My Settings → API Key tab.</small></label>');
-  },
-  function arabic() {
-    return "<h1>Arabic series (optional)</h1><p class='lead'>If you want Arabic series in your library, set up Arabarr. It needs <b>your own</b> free account on ArabP2P and a free API key from TMDB. Please don't share one person's tracker account: trackers can ban accounts that log in from several places.</p>" +
-      toggle("arabic", "Set up Arabarr", "Arabic series for Sonarr",
+  function arabicSeries() {
+    return "<h1>Arabic series and movies (optional)</h1><p class='lead'>Skip this if you only watch English content. Both options use <b>your own</b> free accounts. Please don't share one person's tracker account: trackers can ban accounts that log in from several places.</p>" +
+      toggle("arabic", "Arabic title matching (Arabarr)", "Finds Arabic series and movies for Sonarr and Radarr",
         '<p><b>ArabP2P</b> · <a href="https://www.arabp2p.net/index.php?page=signup" target="_blank" rel="noopener">Sign up for free</a></p>' +
         '<label class="f"><span>Username</span>' + textInput("arabic.username") + '</label><label class="f"><span>Password</span>' + secretInput("arabic.password") + "</label>" +
         '<p><b>TMDB</b> · <a href="https://www.themoviedb.org/signup" target="_blank" rel="noopener">Sign up for free</a> · <a href="https://www.themoviedb.org/settings/api" target="_blank" rel="noopener">Create your API key</a></p>' +
-        '<label class="f"><span>TMDB API key</span>' + secretInput("arabic.tmdb") + "</label>");
+        '<label class="f"><span>TMDB API key</span>' + secretInput("arabic.tmdb") + "</label>") +
+      toggle("arabicsource", "ArabicSource", "An extra Arabic indexer · I have an account at arabicsource.net",
+        '<label class="f"><span>API key</span>' + secretInput("arabicsource.apikey") + '<small class="hint">On the site: My Settings → API Key tab.</small></label>');
   },
   function subtitles() {
     return "<h1>Subtitles (English + Arabic)</h1><p class='lead'>Bazarr downloads subtitles from the providers you set up here. All are free to sign up. <b>OpenSubtitles free accounts are capped at 20 subtitles a day.</b> Subsource and SubDL have no daily limit and are the best Arabic sources, so all three is recommended. Skip them all and Bazarr stays connected to Sonarr and Radarr with no providers.</p>" +
@@ -314,9 +317,9 @@ const PAGES = [
     return "<h1>Review</h1><p class='lead'>Check everything, then start. It runs by itself from here.</p><table>" +
       row("Login", esc(S.admin_user) + " / " + esc(S.admin_pass), 1) + row("Library", "<code>" + esc(fullPath()) + "</code>", 2) +
       row("Debrid", esc(S.debrid.filter(d => d.api_key.trim()).map(d => PROVIDERS[d.provider].label).join(", ")), 3) +
-      row("ArabicSource", S.arabicsource.on ? "yes" : "skipped", 4) +
-      row("Arabic series", S.arabic.on ? "yes (Arabarr)" : "no", 5) + row("Subtitles", esc(subs.join(", ") || "skipped"), 6) +
-      row("Cache", c ? "up to " + esc(S.cache_size) + " GB on " + esc(driveName(c.mount)) + " (fast DFS mount)" : "off (standard mount)", 7) +
+      row("Arabic series", [S.arabic.on ? "Arabarr" : "", S.arabicsource.on ? "ArabicSource" : ""].filter(Boolean).join(", ") || "skipped", 4) +
+      row("Subtitles", esc(subs.join(", ") || "skipped"), 5) +
+      row("Cache", c ? "up to " + esc(S.cache_size) + " GB on " + esc(driveName(c.mount)) + " (fast DFS mount)" : "off (standard mount)", 6) +
       row("Settings in", "<code>~/media-stack</code> · timezone " + esc(S.init ? S.init.timezone : ""), undefined) + "</table>";
   }
 ];
@@ -327,10 +330,18 @@ function render() {
   const e = S.errors && S.errors.length ? '<div class="err"><b>Please fix:</b><ul>' + S.errors.map(x => "<li>" + esc(x) + "</li>").join("") + "</ul></div>" : "";
   const last = S.step === STEPS.length - 1;
   document.getElementById("card").innerHTML = PAGES[S.step]() + e +
-    '<div class="nav"><button onclick="back()" ' + (S.step === 0 ? "disabled" : "") + '>Back</button>' +
-    (last ? '<button class="primary" onclick="startInstall()">Install</button>' : '<button class="primary" onclick="next()">' + (S.step === 0 ? "Start" : "Next") + "</button>") + "</div>";
+    '<div class="nav"><button onclick="back()" ' + (S.step === 0 ? "disabled" : "") + '>Back</button><div class="navr">' +
+    (SKIPPABLE.includes(S.step) ? '<button onclick="skipStep()">Skip</button>' : "") +
+    (last ? '<button class="primary" onclick="startInstall()">Install</button>' : '<button class="primary" onclick="next()">' + (S.step === 0 ? "Start" : "Next") + "</button>") + "</div></div>";
 }
-function go(i) { S.errors = []; S.step = i; render(); if (i === 7) loadCache(); window.scrollTo(0, 0); }
+function go(i) { S.errors = []; S.step = i; render(); if (i === STEP.cache) loadCache(); window.scrollTo(0, 0); }
+function skipStep() {
+  const f = freshState();
+  if (S.step === STEP.arabic) { S.arabic = f.arabic; S.arabicsource = f.arabicsource; }
+  if (S.step === STEP.subs) S.subs = f.subs;
+  if (S.step === STEP.cache) { S.cache_choice = -1; S.cache_size = 0; }
+  go(S.step + 1);
+}
 function back() { if (S.step > 0) go(S.step - 1); }
 function next() {
   const e = validateStep(S.step);
@@ -341,10 +352,10 @@ async function loadCache() {
   if (S.cache || S.cacheLoading) return;
   S.cacheLoading = true; render();
   try { S.cache = await api("/api/cache"); } catch (e) { S.cache = {candidates: [], min_free_gb: 40}; }
-  S.cacheLoading = false; if (S.step === 7) render();
+  S.cacheLoading = false; if (S.step === STEP.cache) render();
 }
 function useSaved() {
-  api("/api/saved").then(a => { if (applySaved(a)) { go(7); } });
+  api("/api/saved").then(a => { if (applySaved(a)) { go(STEP.cache); } });
 }
 
 /* ---- folder picker */

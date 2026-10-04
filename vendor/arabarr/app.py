@@ -458,6 +458,71 @@ def search_movie(p):
     # blank query = Radarr's RSS sync and its indexer "test": see search() for why unmatched items are kept
     return feed_movie([""], rss_map_movies(), True, "RSS-movies")
 
+# ---------- hand-over to Radarr (Arabic-only file names) ----------
+# Some ArabP2P uploads carry Arabic-only folder/file names. Radarr can't read a title out of those, so the grab sits at
+# "Unable to parse file" and never imports. For grabs that came from Arabarr we already know the movie, quality and
+# languages (Radarr stored them from the clean title we handed over), so we do what a person does by hand in Radarr's
+# "manual import": tell Radarr "this file is movie X" through its own API. Radarr then imports it like any other download.
+IMPORT_FIX = E("ARABARR_IMPORT_FIX", "1") != "0"
+IMPORT_EVERY = int(E("ARABARR_IMPORT_INTERVAL", "60"))
+IMPORT_RETRY_GAP, IMPORT_MAX_TRIES = 300, 4
+_import_tries = {}                     # downloadId -> (tries, last attempt time)
+
+def radarr_post(path, body):
+    req = urllib.request.Request(f"{RADARR}/api/v3/{path}", data=json.dumps(body).encode(),
+                                 headers={"X-Api-Key": RADARR_KEY, "Content-Type": "application/json"}, method="POST")
+    with urllib.request.urlopen(req, timeout=60) as r:
+        return json.load(r)
+
+def stuck_unparsable(rec):
+    """A queue record that is one of our grabs, finished downloading, and waiting only because Radarr can't parse the name."""
+    if rec.get("indexer") != "Arabarr" or not rec.get("downloadId") or not rec.get("movieId") or not rec.get("outputPath"):
+        return False
+    if rec.get("trackedDownloadState") not in ("importPending", "importBlocked"):
+        return False
+    msgs = " ".join(m for sm in rec.get("statusMessages") or [] for m in sm.get("messages") or [])
+    return "parse" in msgs.lower()
+
+def manual_import_files(rec, found):
+    """found: Radarr's manualimport listing for the folder. Returns the file payloads for the ManualImport command."""
+    out = []
+    for f in found:
+        if not f.get("path"):
+            continue
+        out.append({"path": f["path"], "movieId": rec["movieId"], "quality": rec.get("quality") or f.get("quality"),
+                    "languages": rec.get("languages") or f.get("languages") or [], "releaseGroup": f.get("releaseGroup") or "ArabP2P",
+                    "downloadId": rec["downloadId"]})
+    return out
+
+def hand_over_stuck(now=None, get=None, post=None):
+    get, post, now = get or radarr, post or radarr_post, now or time.time()
+    done = 0
+    for rec in get("queue?pageSize=100&includeMovie=false").get("records", []):
+        if not stuck_unparsable(rec):
+            continue
+        tries, last = _import_tries.get(rec["downloadId"], (0, 0))
+        if tries >= IMPORT_MAX_TRIES or now - last < IMPORT_RETRY_GAP:
+            continue
+        _import_tries[rec["downloadId"]] = (tries + 1, now)
+        qs = urllib.parse.urlencode({"folder": rec["outputPath"], "downloadId": rec["downloadId"], "movieId": rec["movieId"],
+                                     "filterExistingFiles": "false"})
+        files = manual_import_files(rec, get("manualimport?" + qs))
+        if not files:
+            log(f"[import] {rec.get('title')}: Radarr listed no importable files in {rec['outputPath']}")
+            continue
+        post("command", {"name": "ManualImport", "importMode": "auto", "files": files})
+        log(f"[import] {rec.get('title')}: handed {len(files)} file(s) to Radarr as movie {rec['movieId']}")
+        done += 1
+    return done
+
+def import_loop():
+    while True:
+        time.sleep(IMPORT_EVERY)
+        try:
+            hand_over_stuck()
+        except Exception as e:
+            log("[import] error:", repr(e))
+
 # ---------- torznab ----------
 def feed(queries, names, keep_unmatched, label, single_season=False):
     root = chan = None
@@ -632,4 +697,6 @@ class Handler(BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     log(f"Arabarr on port {PORT}, ArabP2P indexer {INDEXER_ID}")
+    if RADARR and IMPORT_FIX:
+        threading.Thread(target=import_loop, daemon=True).start()
     ThreadingHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()

@@ -34,6 +34,17 @@ It asks a few questions up front, then runs by itself:
 Needs: a 64-bit Linux PC, 4 GB RAM or more, internet. Docker is installed for you if missing.
 Works on Debian/Ubuntu/Mint, Fedora, Arch, openSUSE (anything else with Docker + `sudo` should also work).
 
+## What it looks like
+
+The installer page (taken from an automated test run on a clean machine, with fake data):
+
+| | |
+|---|---|
+| ![Welcome](docs/screenshots/1-welcome.png) | ![Login](docs/screenshots/2-login.png) |
+| ![Debrid](docs/screenshots/3-debrid.png) | ![Subtitles](docs/screenshots/4-subtitles.png) |
+| ![Cache](docs/screenshots/5-cache.png) | ![Review](docs/screenshots/6-review.png) |
+| ![Installing](docs/screenshots/7-installing.png) | ![Done](docs/screenshots/8-done.png) |
+
 ## What you have afterwards
 
 Open **Homepage** (`http://<this-pc>:3001`): it links to everything. Then:

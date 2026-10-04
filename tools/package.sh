@@ -8,6 +8,6 @@ python3 tools/export_from_live.py >/dev/null
 echo "Auditing for secrets..."
 python3 tools/audit_seed.py
 OUT="${1:-$KIT/../media-stack-kit.tar.gz}"
-tar --exclude='./tools' --exclude='./state' --exclude='./tests' --exclude='./.github' --exclude='./.git' --exclude='__pycache__' \
+tar --exclude='./tools' --exclude='./state' --exclude='./tests' --exclude='./.github' --exclude='./docs' --exclude='./.git' --exclude='__pycache__' \
     --transform 's,^\./,media-stack-kit/,' -czf "$OUT" .
 echo "Built $OUT ($(du -h "$OUT" | cut -f1)). Friends: tar xzf, cd media-stack-kit, ./install.sh"

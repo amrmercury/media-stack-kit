@@ -25,7 +25,9 @@ test("login validation", () => {
   assert.strictEqual(run("validateStep(1).length"), 2);
   run("S.admin_user='bad name!'; S.admin_pass='short'");
   assert.strictEqual(run("validateStep(1).length"), 2);
-  run("S.admin_user='alex'; S.admin_pass='Passw0rd!123'");
+  run("S.admin_user='alex'; S.admin_pass='Passw0rd!123'; S.admin_pass2='Passw0rd!124'");
+  assert.deepStrictEqual(JSON.parse(run("JSON.stringify(validateStep(1))")), ["The two passwords don't match."]);
+  run("S.admin_pass2='Passw0rd!123'");
   assert.strictEqual(run("validateStep(1).length"), 0);
 });
 
@@ -80,6 +82,7 @@ test("skip clears the step's answers and moves on without validating", () => {
 test("login label has no 'as you type' text and debrid row is one grid line", () => {
   run("S = freshState(); S.init=" + JSON.stringify(init));
   assert.ok(!/as you type/.test(run("PAGES[1]()")));
+  assert.ok(run("PAGES[1]()").includes("Repeat password") && run("PAGES[1]()").includes('class="sw"'));
   assert.ok(run("PAGES[3]()").includes('class="drow"'));
 });
 

@@ -66,16 +66,20 @@ def flow(page, srv, url):
     page.get_by_role("button", name="Next").click()
     expect(page.locator("#card .err")).to_contain_text("Username")
     shot(page, "login-errors")
+    pw, pw2 = page.get_by_label("Password", exact=True), page.get_by_label("Repeat password")
     page.get_by_label("Username").fill("ciuser")
-    page.get_by_label("Password").fill("short")
+    pw.fill("short"); pw2.fill("short")
     page.get_by_role("button", name="Next").click()
     expect(page.locator("#card .err")).to_contain_text("at least 8")
-    page.get_by_label("Password").fill("Passw0rd!ci-test")
-    assert page.get_by_label("Password").get_attribute("type") == "text", "password should be visible by default"
-    page.get_by_role("button", name="Hide what I type").click()
-    assert page.get_by_label("Password").get_attribute("type") == "password"
-    page.get_by_role("button", name="Show what I type").click()
-    assert page.get_by_label("Password").get_attribute("type") == "text"
+    pw.fill("Passw0rd!ci-test"); pw2.fill("Passw0rd!ci-typo")
+    page.get_by_role("button", name="Next").click()
+    expect(page.locator("#card .err")).to_contain_text("don't match")
+    pw2.fill("Passw0rd!ci-test")
+    assert pw.get_attribute("type") == "text", "password should be visible by default"
+    page.get_by_label("Hide", exact=True).check()
+    assert pw.get_attribute("type") == "password" and pw2.get_attribute("type") == "password"
+    page.get_by_label("Hide", exact=True).uncheck()
+    assert pw.get_attribute("type") == "text"
     shot(page, "login")
     page.get_by_role("button", name="Next").click()
 

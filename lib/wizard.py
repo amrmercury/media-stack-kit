@@ -73,6 +73,7 @@ def sec_account(a):
         return None if len(v) >= 8 else "Use at least 8 characters."
 
     a["admin_pass"] = ask("Password", validate=vp)
+    ask("Repeat password", validate=lambda v: None if v == a["admin_pass"] else "The two passwords don't match.")
 
 
 def _fmt_free(gb):

@@ -6,13 +6,13 @@
 <title>Media Stack Installer</title>
 <style>
 :root{
-  /* same slate gray as the Homepage dashboard; cream buttons, a yellow Next, light-blue check marks */
-  --bg:#1e293b;--card:#293548;--ink:#e2e8f0;--mute:#94a3b8;--line:#3f4e66;
-  --blue:#8fd0f5;--blue-soft:#33425b;--blue-deep:#8fd0f5;
-  --sun:#f7dc7a;--sun-deep:#e6c85a;--sun-soft:#363f4d;--sun-ink:#2e2600;
-  --cream:#f6f1e1;--cream-hover:#fffaea;--cream-line:#e4dcc0;--cream-ink:#1e293b;
-  --ok:#8fd9b8;--bad:#ff9d93;--bad-bg:#3d2a2c;--field:#1e293b;
-  --code:#0f172a;--codeink:#d9e2ef;color-scheme:dark}
+  /* neutral gray (no blue tint), cream buttons, a yellow Next, light-blue check marks */
+  --bg:#262626;--card:#313131;--ink:#e8e8e8;--mute:#a3a3a3;--line:#4a4a4a;
+  --blue:#8fd0f5;--blue-soft:#3d3d3d;--blue-deep:#8fd0f5;
+  --sun:#f7dc7a;--sun-deep:#e6c85a;--sun-soft:#3b3a35;--sun-ink:#2e2600;
+  --cream:#f6f1e1;--cream-hover:#fffaea;--cream-line:#e4dcc0;--cream-ink:#262626;
+  --ok:#8fd9b8;--bad:#ff9d93;--bad-bg:#3d2b2b;--field:#262626;
+  --code:#171717;--codeink:#e0e0e0;color-scheme:dark}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif}
 header{padding:22px 20px 10px;max-width:880px;margin:0 auto}
@@ -86,7 +86,7 @@ code,.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;back
 .links a:hover{background:var(--sun-soft);border-color:var(--sun-deep)}
 .links a b{display:block;color:var(--blue-deep)}
 .links a small{color:var(--mute)}
-.modal{position:fixed;inset:0;background:rgba(15,23,42,.65);display:flex;align-items:center;justify-content:center;padding:14px;z-index:5}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:14px;z-index:5}
 .modal[hidden]{display:none}
 .mbox{background:var(--card);border-radius:18px;width:min(640px,100%);max-height:88vh;display:flex;flex-direction:column;padding:18px}
 .crumb{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;background:var(--blue-soft);border-radius:10px;padding:8px 10px;word-break:break-all}

@@ -19,8 +19,8 @@ jobs:
       - run: python3 tests/test_webui.py
       - run: python3 tests/test_bazarr_form.py
       - run: python3 -m py_compile lib/*.py tools/*.py
-      - run: bash -n install.sh && bash -n stack.sh && bash -n diag.sh
-      - run: shellcheck -S warning install.sh stack.sh diag.sh tests/ci_diag.sh || true
+      - run: bash -n install.sh && bash -n stack.sh && bash -n diag.sh && bash -n uninstall.sh
+      - run: shellcheck -S warning install.sh stack.sh diag.sh uninstall.sh tests/ci_diag.sh || true
 
   install:
     name: full install (${{ matrix.case }})
@@ -47,6 +47,21 @@ jobs:
           export STACK_STATE_DIR="$RUNNER_TEMP/state"
           ./stack.sh down
           ./install.sh --answers "$RUNNER_TEMP/answers.json" --state-dir "$RUNNER_TEMP/state" 2>&1 | tee "$RUNNER_TEMP/run3.log"
+      - name: Remove everything (including root-owned leftovers), check nothing is left, then install once more
+        shell: bash
+        run: |
+          export STACK_STATE_DIR="$RUNNER_TEMP/state"
+          sudo mkdir -p "$HOME/media-stack/jellyfin/config/data" && sudo touch "$HOME/media-stack/jellyfin/config/data/root-owned.db"
+          ./uninstall.sh --yes 2>&1 | tee "$RUNNER_TEMP/uninstall.log"
+          fail=0
+          for p in "$HOME/media-stack" "$HOME/ci-media/decypharr" "$HOME/ci-media/symlinks" "$HOME/ci-cache/media-stack-cache" "$STACK_STATE_DIR"; do
+            [ -e "$p" ] && { echo "LEFTOVER: $p"; fail=1; }
+          done
+          docker ps -a --format '{{.Names}}' | grep -x -E 'decypharr|prowlarr|sonarr|radarr|bazarr|flaresolverr|jellyseerr|jellyfin|recyclarr|pearlarr|homepage|babysitarr|arabarr' && { echo "LEFTOVER containers"; fail=1; }
+          grep -q "ci-media/decypharr" /proc/mounts && { echo "LEFTOVER mount"; fail=1; }
+          [ "$fail" = 0 ] || exit 1
+          echo "nothing left; installing from scratch"
+          ./install.sh --answers "$RUNNER_TEMP/answers.json" --state-dir "$RUNNER_TEMP/state" 2>&1 | tee "$RUNNER_TEMP/run4.log"
       - name: Resource use
         if: always()
         run: docker stats --no-stream || true

@@ -6,17 +6,13 @@
 <title>Media Stack Installer</title>
 <style>
 :root{
-  --bg:#e8f3fb;--card:#fbfdff;--ink:#1d3b52;--mute:#5b7b92;--line:#c8dfee;
-  --blue:#a9d6f2;--blue-soft:#dcedf9;--blue-deep:#2f7fb3;
-  --sun:#fbe7a1;--sun-deep:#efd06f;--sun-soft:#fff7d9;--sun-ink:#3d3200;
-  --ok:#2f8f6b;--bad:#b8443c;--bad-bg:#fdecea;--field:#f1f8fd;
-  --code:#16293a;--codeink:#d9ecf8}
-@media (prefers-color-scheme:dark){:root{
-  --bg:#0f202c;--card:#162d3d;--ink:#e5f1f9;--mute:#92b3c8;--line:#27465a;
-  --blue:#4f9ccb;--blue-soft:#1b3a50;--blue-deep:#8cc9ee;
-  --sun:#f2dc8f;--sun-deep:#d9bd55;--sun-soft:#2b3a32;--sun-ink:#2e2600;
-  --ok:#6fd1a3;--bad:#ff9d93;--bad-bg:#3a2321;--field:#112636;
-  --code:#0b1822;--codeink:#d9ecf8}}
+  /* same slate gray as the Homepage dashboard; cream buttons, a yellow Next, light-blue check marks */
+  --bg:#1e293b;--card:#293548;--ink:#e2e8f0;--mute:#94a3b8;--line:#3f4e66;
+  --blue:#8fd0f5;--blue-soft:#33425b;--blue-deep:#8fd0f5;
+  --sun:#f7dc7a;--sun-deep:#e6c85a;--sun-soft:#363f4d;--sun-ink:#2e2600;
+  --cream:#f6f1e1;--cream-hover:#fffaea;--cream-line:#e4dcc0;--cream-ink:#1e293b;
+  --ok:#8fd9b8;--bad:#ff9d93;--bad-bg:#3d2a2c;--field:#1e293b;
+  --code:#0f172a;--codeink:#d9e2ef;color-scheme:dark}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif}
 header{padding:22px 20px 10px;max-width:880px;margin:0 auto}
@@ -25,9 +21,10 @@ header{padding:22px 20px 10px;max-width:880px;margin:0 auto}
 #steps{display:flex;gap:6px;list-style:none;padding:0;margin:14px 0 0;flex-wrap:wrap}
 #steps li{font-size:12px;color:var(--mute);padding:4px 10px;border-radius:99px;border:1px solid var(--line);background:var(--card)}
 #steps li.on{background:var(--blue);color:#12324a;border-color:var(--blue);font-weight:700}
-#steps li.done{background:var(--sun-soft);border-color:var(--sun-deep);color:var(--ink)}
+#steps li.done{color:var(--ink)}
+#steps li.done:before{content:"✓ ";color:var(--blue);font-weight:700}
 main{max-width:880px;margin:0 auto;padding:6px 16px 60px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px 24px 20px;box-shadow:0 4px 18px rgba(47,127,179,.10)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px 24px 20px;box-shadow:0 4px 18px rgba(0,0,0,.25)}
 h1{font-size:24px;margin:0 0 6px;font-weight:700}
 h2{font-size:17px;margin:22px 0 8px}
 p{margin:8px 0}
@@ -39,12 +36,12 @@ input:focus,select:focus,button:focus-visible{outline:3px solid var(--blue);outl
 .hint{display:block;font-size:13px;color:var(--mute);margin-top:5px}
 .row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
 .row>.f{flex:1;min-width:200px;margin:8px 0}
-button{font:inherit;cursor:pointer;border-radius:11px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:10px 16px}
-button:hover{background:var(--blue-soft)}
+button{font:inherit;cursor:pointer;border-radius:11px;border:1px solid var(--line);background:var(--cream);color:var(--cream-ink);border-color:var(--cream-line);padding:10px 16px}
+button:hover{background:var(--cream-hover)}
 button.primary{background:var(--sun);color:var(--sun-ink);border-color:var(--sun-deep);font-weight:700}
 button.primary:hover{background:var(--sun-deep)}
 button.link{border:none;background:none;color:var(--blue-deep);padding:4px 2px}
-button.link:hover{background:none;text-decoration:underline}
+button.link:hover{background:none;text-decoration:underline;color:var(--blue-deep)}
 button:disabled{opacity:.5;cursor:default}
 .nav{display:flex;justify-content:space-between;margin-top:24px;gap:10px}
 .navr{display:flex;gap:10px}
@@ -65,8 +62,9 @@ button:disabled{opacity:.5;cursor:default}
 .opt .body{margin-top:8px;padding-left:28px}
 input[type=checkbox],input[type=radio]{accent-color:var(--blue-deep);width:17px;height:17px;margin-top:3px}
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin:12px 0}
-.drive{border:1px solid var(--line);border-radius:14px;padding:12px;text-align:left;background:var(--card)}
-.drive.sel{border-color:var(--sun-deep);background:var(--sun-soft);box-shadow:0 0 0 2px var(--sun)}
+.drive{border:1px solid var(--line);border-radius:14px;padding:12px;text-align:left;background:var(--bg);color:var(--ink)}
+.drive:hover{background:var(--sun-soft)}
+.drive.sel{border-color:var(--sun-deep);background:var(--sun-soft);box-shadow:0 0 0 2px var(--sun-deep)}
 .drive b{display:block}
 .drive small{color:var(--mute)}
 table{border-collapse:collapse;width:100%;font-size:14px}
@@ -80,20 +78,20 @@ code,.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;back
 @media (max-width:700px){.prog{grid-template-columns:1fr}}
 .psteps{list-style:none;padding:0;margin:0}
 .psteps li{padding:6px 0;display:flex;gap:8px;font-size:14px}
-.psteps .ic{width:18px;text-align:center}
+.psteps .ic{width:18px;text-align:center;color:var(--blue)}
 .log{background:var(--code);color:var(--codeink);border-radius:12px;padding:12px;height:360px;overflow:auto;font:12.5px/1.45 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap}
-.log div{min-height:1.2em}.log .ok{color:#b7e4c7}.log .fail{color:#ffb4a8}.log .warn{color:#fbe7a1}.log .head{color:#a9d6f2;font-weight:700;margin-top:8px}
+.log div{min-height:1.2em}.log .ok{color:#8fd0f5}.log .fail{color:#ffb4a8}.log .warn{color:#fbe7a1}.log .head{color:#f7dc7a;font-weight:700;margin-top:8px}
 .links{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin:12px 0}
 .links a{display:block;border:1px solid var(--line);border-radius:14px;padding:12px;text-decoration:none;color:var(--ink);background:var(--card)}
 .links a:hover{background:var(--sun-soft);border-color:var(--sun-deep)}
 .links a b{display:block;color:var(--blue-deep)}
 .links a small{color:var(--mute)}
-.modal{position:fixed;inset:0;background:rgba(29,59,82,.45);display:flex;align-items:center;justify-content:center;padding:14px;z-index:5}
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.65);display:flex;align-items:center;justify-content:center;padding:14px;z-index:5}
 .modal[hidden]{display:none}
 .mbox{background:var(--card);border-radius:18px;width:min(640px,100%);max-height:88vh;display:flex;flex-direction:column;padding:18px}
 .crumb{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;background:var(--blue-soft);border-radius:10px;padding:8px 10px;word-break:break-all}
 .dirs{overflow:auto;border:1px solid var(--line);border-radius:12px;margin:10px 0;min-height:160px;max-height:300px;background:var(--card)}
-.dirs button{display:block;width:100%;text-align:left;border:none;border-bottom:1px solid var(--line);border-radius:0;background:none;padding:9px 12px}
+.dirs button{display:block;width:100%;text-align:left;border:none;border-bottom:1px solid var(--line);border-radius:0;background:none;color:var(--ink);padding:9px 12px}
 .dirs button:hover{background:var(--sun-soft)}
 </style>
 </head>
@@ -282,8 +280,8 @@ const PAGES = [
       toggle("arabic", "Arabic title matching (Arabarr)", "Finds Arabic series and movies for Sonarr and Radarr",
         '<p><b>ArabP2P</b> · <a href="https://www.arabp2p.net/index.php?page=signup" target="_blank" rel="noopener">Sign up for free</a></p>' +
         '<label class="f"><span>Username</span>' + textInput("arabic.username") + '</label><label class="f"><span>Password</span>' + secretInput("arabic.password") + "</label>" +
-        '<p><b>TMDB</b> · <a href="https://www.themoviedb.org/signup" target="_blank" rel="noopener">Sign up for free</a> · <a href="https://www.themoviedb.org/settings/api" target="_blank" rel="noopener">Create your API key</a></p>' +
-        '<label class="f"><span>TMDB API key</span>' + secretInput("arabic.tmdb") + "</label>") +
+        '<p><b>TMDB</b> · <a href="https://www.themoviedb.org/signup" target="_blank" rel="noopener">Sign up for free</a></p>' +
+        '<label class="f"><span>TMDB API key</span>' + secretInput("arabic.tmdb") + '<small class="hint">After signing up, your key is under Settings → API in your TMDB account.</small></label>') +
       toggle("arabicsource", "ArabicSource", "An extra Arabic indexer · I have an account at arabicsource.net",
         '<label class="f"><span>API key</span>' + secretInput("arabicsource.apikey") + '<small class="hint">On the site: My Settings → API Key tab.</small></label>');
   },
@@ -434,7 +432,7 @@ function finish(r, failed) {
   }
   const sm = r.summary || {urls: [], notes: [], user: ""};
   document.querySelector("h1").textContent = "All done: installed, configured and verified";
-  stat.innerHTML = '<span style="color:var(--ok)">✔ Sign in everywhere with <b>' + esc(sm.user) + "</b> and the password you chose.</span>";
+  stat.innerHTML = '<span style="color:var(--blue)">✔ Sign in everywhere with <b>' + esc(sm.user) + "</b> and the password you chose.</span>";
   end.innerHTML = '<h2>Open your apps</h2><div class="links">' + sm.urls.map(u => '<a href="' + esc(u.url) + '" target="_blank" rel="noopener"><b>' + esc(u.name) + "</b><small>" + esc(u.desc) + "<br>" + esc(u.url) + "</small></a>").join("") + "</div>" +
     "<h2>What's left for you</h2><ul>" + sm.notes.map(n => "<li>" + esc(n) + "</li>").join("") + "</ul>" +
     '<div class="nav"><button onclick="copyLog()">Copy log</button><button class="primary" onclick="finishUi()">Finish</button></div>';

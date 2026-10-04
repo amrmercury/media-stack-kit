@@ -224,8 +224,7 @@ def sec_arabic(a):
         return
     pw = ask("      Password", secret=True)
     print(f"\n{B}TMDB API key{R}  (Arabarr uses it to match Arabic titles)\n"
-          f"      Sign up for free at: https://www.themoviedb.org/signup\n"
-          f"      Create your API key at: https://www.themoviedb.org/settings/api")
+          f"      Sign up for free at: https://www.themoviedb.org/signup  (your key is under Settings -> API)")
     k = ask("      API key (or type S to skip Arabarr)", secret=True)
     if k.lower() == "s":
         warn("Skipped: no Arabarr setup. Re-run the installer any time to add it.")

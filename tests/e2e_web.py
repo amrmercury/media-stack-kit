@@ -93,6 +93,8 @@ def flow(page, srv, url):
     shot(page, "folder-picker")
     page.get_by_role("button", name="Use this folder").click()
     expect(page.locator(".note code")).to_contain_text("/ci-library/Media")
+    page.get_by_role("button", name="Back").click()           # re-enter the page so the earlier error box is gone for the picture
+    page.get_by_role("button", name="Next").click()
     shot(page, "library")
     page.get_by_role("button", name="Next").click()
 

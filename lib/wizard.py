@@ -202,7 +202,7 @@ def sec_indexers(a):
     print("Most indexers need nothing (ArabTorrents works without an account, so it's simply on). ArabicSource needs an\n"
           "API key from your own account. Press Enter to skip; a skipped indexer is simply left switched off.")
     idx = {}
-    print(f"\n{B}ArabicSource{R}  {D}account at https://arabicsource.net  (key: My Settings -> API Key tab){R}")
+    print(f"\n{B}ArabicSource{R}  {D}an extra source of Arabic series and movies for a bigger coverage. Sign up for free at https://arabicsource.net  (key: My Settings -> API Key tab){R}")
     k = ask("  API key (Enter to skip)", allow_empty=True, secret=True)
     if k:
         idx["arabicsource"] = {"apikey": k}

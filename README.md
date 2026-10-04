@@ -24,7 +24,7 @@ It asks a few questions up front, then runs by itself:
 2. **Where your library should live**: pick a drive from a numbered menu, or browse to a folder. No paths to type.
 3. **Debrid keys**: Real-Debrid, AllDebrid and/or TorBox. Add as many as you like.
 4. **ArabicSource** (optional): needs an API key from your own account. ArabTorrents works without an account, so it's just on.
-5. **Arabic series** (optional): installs Arabarr. Needs your own ArabP2P account and a free TMDB API key (links are shown).
+5. **Arabic series and movies** (optional): installs Arabarr, which finds Arabic series for Sonarr and Arabic movies for Radarr, and hands Arabic-only downloads to Radarr so they import. Needs your own ArabP2P account and a free TMDB API key (links are shown).
 6. **Subtitle providers** (optional): OpenSubtitles (needs your *username*, not your email), Subsource, SubDL.
    Bazarr is always connected to Sonarr and Radarr; skipping all providers just leaves it with no providers.
 7. **Cache** (optional): only offered if a fast SSD with enough free space is found; shows how much space it will use.

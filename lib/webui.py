@@ -190,7 +190,7 @@ def build_answers(p, hw):
     a["enable_arabarr"], a["tmdb_api_key"] = False, ""
     if ar.get("on"):
         if not (ar.get("username") or "").strip() or not ar.get("password") or not (ar.get("tmdb") or "").strip():
-            errs.append("Arabic series: needs the ArabP2P username + password and a TMDB API key, or turn it off.")
+            errs.append("Arabic series and movies: needs the ArabP2P username + password and a TMDB API key, or turn it off.")
         else:
             idx["arabp2p"] = {"username": ar["username"].strip(), "password": ar["password"]}
             a["tmdb_api_key"], a["enable_arabarr"] = ar["tmdb"].strip(), True
@@ -239,7 +239,7 @@ def summary_for(a):
     if not a.get("subtitles"):
         notes.append("You skipped subtitles: Bazarr is connected to Sonarr and Radarr but has no providers yet.")
     if not a.get("enable_arabarr"):
-        notes.append("Arabic series (Arabarr) isn't installed. Run the installer again any time to add it.")
+        notes.append("Arabic series and movies (Arabarr) isn't installed. Run the installer again any time to add it.")
     notes.append("Playback is direct-play by default. If a device can't play a file, allow transcoding for that user in "
                  "Jellyfin (Dashboard → Users → Playback).")
     return {"user": a["admin_user"], "urls": [{"name": n, "url": f"http://{h}:{ports[k]}", "desc": d} for n, k, d in rows],

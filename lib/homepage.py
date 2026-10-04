@@ -12,7 +12,7 @@ from common import compose, docker, info, ok, write_file
 CATALOG = [
     ("jellyfin", "Media", "Jellyfin", "Media server", "jellyfin.png", "http://jellyfin:8096", "jellyfin", 8096),
     ("jellyseerr", "Media", "Jellyseerr", "Requests", "jellyseerr.png", None, None, 5055),
-    ("arabarr", "Automation", "Arabarr", "Arabic series proxy", "/icons/arabarr.png", None, None, 5011),
+    ("arabarr", "Automation", "Arabarr", "Arabic series and movies proxy", "/icons/arabarr.png", None, None, 5011),
     ("sonarr", "Automation", "Sonarr", "TV", "sonarr.png", "http://sonarr:8989", "sonarr", 8989),
     ("radarr", "Automation", "Radarr", "Movies", "radarr.png", "http://radarr:7878", "radarr", 7878),
     ("prowlarr", "Automation", "Prowlarr", "Indexers", "prowlarr.png", "http://prowlarr:9696", "prowlarr", 9696),

@@ -120,7 +120,7 @@ code,.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;back
 const TOKEN = "__TOKEN__";
 
 /* ============================================================ state + pure logic (unit-tested in Node) */
-const STEPS = ["Welcome", "Login", "Library", "Debrid", "Arabic series", "Subtitles", "Cache", "Review"];
+const STEPS = ["Welcome", "Login", "Library", "Debrid", "Arabic series and movies", "Subtitles", "Cache", "Review"];
 const STEP = {login: 1, library: 2, debrid: 3, arabic: 4, subs: 5, cache: 6, review: 7};
 const SKIPPABLE = [STEP.arabic, STEP.subs, STEP.cache];
 const PROVIDERS = {
@@ -318,7 +318,7 @@ const PAGES = [
     return "<h1>Review</h1><p class='lead'>Check everything, then start. It runs by itself from here.</p><table>" +
       row("Login", esc(S.admin_user) + " / " + esc(S.admin_pass), 1) + row("Library", "<code>" + esc(fullPath()) + "</code>", 2) +
       row("Debrid", esc(S.debrid.filter(d => d.api_key.trim()).map(d => PROVIDERS[d.provider].label).join(", ")), 3) +
-      row("Arabic series", [S.arabic.on ? "Arabarr" : "", S.arabicsource.on ? "ArabicSource" : ""].filter(Boolean).join(", ") || "skipped", 4) +
+      row("Arabic series and movies", [S.arabic.on ? "Arabarr" : "", S.arabicsource.on ? "ArabicSource" : ""].filter(Boolean).join(", ") || "skipped", 4) +
       row("Subtitles", esc(subs.join(", ") || "skipped"), 5) +
       row("Cache", c ? "up to " + esc(S.cache_size) + " GB on " + esc(driveName(c.mount)) + " (fast DFS mount)" : "off (standard mount)", 6) +
       row("Settings in", "<code>~/media-stack</code> · timezone " + esc(S.init ? S.init.timezone : ""), undefined) + "</table>";

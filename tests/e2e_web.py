@@ -106,7 +106,7 @@ def flow(page, srv, url):
     shot(page, "debrid")
     page.get_by_role("button", name="Next").click()
 
-    stage("Arabic series (one step)")
+    stage("Arabic series and movies (one step)")
     expect(page.locator("h1")).to_contain_text("Arabic series")
     assert page.get_by_role("button", name="Skip").count() == 1
     box = page.locator(".opt", has_text="ArabicSource")

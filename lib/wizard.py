@@ -307,7 +307,7 @@ def sec_confirm(a, hw):
     print(f"  Settings in:  {a['stack_dir']}     Timezone: {a['timezone']}")
     print(f"  Debrid keys:  {', '.join(DEBRID[k['provider']]['label'] for k in a['debrid'])}")
     print(f"  Subtitles:    {', '.join(a['subtitles']) or 'skipped'}")
-    print(f"  Arabic series (Arabarr): {'yes' if a['enable_arabarr'] else 'no'}")
+    print(f"  Arabic series and movies (Arabarr): {'yes' if a['enable_arabarr'] else 'no'}")
     c = a["cache"]
     print(f"  Cache:        {('up to %d GB at %s (fast DFS mount)' % (c['size_gb'], c['path'])) if c.get('path') else 'off (standard mount)'}")
     return yesno("\nLooks right? Start the install", default=True)

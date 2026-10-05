@@ -64,17 +64,18 @@ def run(a, S, ports, jf, js, bz, dec, sonarr, radarr, prowlarr, running):
     if "homepage" in running:
         def tags():
             import json as _j
-            names = [n for s, n in running.items() if s != "homepage"]
-            bad = []
+            names = [n for sv, n in running.items() if sv != "homepage"]
+            bad, sample = [], ""
             for n in names:
-                r = http("GET", f"http://localhost:{ports['homepage']}/api/docker/status/my-docker/{n}")
+                r = http("GET", f"http://localhost:{ports['homepage']}/api/docker/status/{n}/my-docker")     # container first, then server
                 try:
                     st = _j.loads(r.body).get("status")
                 except Exception:  # noqa: BLE001
                     st = None
-                if st != "running":
+                if st not in ("running", "healthy") and not str(st).startswith("running"):
                     bad.append(f"{n}={st}")
-            return (not bad, f"{len(names)} tiles show running" if not bad else "tiles would show ERROR: " + ", ".join(bad[:6]))
+                    sample = sample or f"HTTP {r.status}: {r.body[:100]!r}"
+            return (not bad, f"{len(names)} tiles show running" if not bad else "tiles would show ERROR: " + ", ".join(bad[:6]) + " | " + sample)
         check("homepage: every tile shows 'running' (not ERROR)", tags)
     for app, kind in ((sonarr, "sonarr"), (radarr, "radarr")):
         check(f"{kind}: sees the download folder (no health warning)",

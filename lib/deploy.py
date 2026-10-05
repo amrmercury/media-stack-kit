@@ -282,8 +282,8 @@ def main():
     def sonarr_radarr_setup():
         seed_sonarr_radarr(sonarr, "sonarr", a, S, box["jfkey"], box.get("arabarr"))
         seed_sonarr_radarr(radarr, "radarr", a, S, box["jfkey"], box.get("arabarr"))
-        wait_indexers_synced(sonarr, 5)
-        wait_indexers_synced(radarr, 5)
+        wait_indexers_synced(sonarr, 5, prowlarr=prowlarr)
+        wait_indexers_synced(radarr, 5, prowlarr=prowlarr)
 
     stage("Decypharr: your login", decypharr_login)
     stage("Jellyfin: setup, your account, plugins, libraries", jellyfin_setup)

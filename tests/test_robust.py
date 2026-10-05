@@ -169,4 +169,15 @@ try: a_.send("POST", "/indexer", {}); ok = False
 except StackError: ok = len(calls_) == 1
 check("a dead third-party indexer is NOT waited on (only our own apps are)", ok)
 
+# --- indexers lost because Sonarr was restarting during Prowlarr's push: ask Prowlarr to sync again
+class Fake:
+    def __init__(self): self.counts = [0, 0, 0, 6]; self.posts = []; self.name = "sonarr"
+    def get(self, path): return [{"name": f"i{k} (Prowlarr)"} for k in range(self.counts.pop(0) if len(self.counts) > 1 else self.counts[0])]
+    def req(self, method, path, body=None, **k): self.posts.append((method, path, body)); return FakeResp(201, "{}")
+fs, fp = Fake(), Fake()
+arr.time = FastTime()
+n = arr.wait_indexers_synced(fs, 5, timeout=30, prowlarr=fp, nudge_every=0)
+check("missing indexers make the installer ask Prowlarr to sync again, then succeed",
+      n == 6 and fp.posts and fp.posts[0] == ("POST", "/command", {"name": "ApplicationIndexerSync"}))
+
 print(f"\n{PASS} robustness checks passed")

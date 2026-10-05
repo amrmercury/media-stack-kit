@@ -280,13 +280,20 @@ def seed_prowlarr(p: Arr, a, S, sonarr_key, radarr_key):
     ok("prowlarr configured")
 
 
-def wait_indexers_synced(arr: Arr, minimum, timeout=120):
-    t0 = time.time()
+def wait_indexers_synced(arr: Arr, minimum, timeout=240, prowlarr: Arr = None, nudge_every=25):
+    """Prowlarr pushes its indexers into Sonarr/Radarr when the app is registered. If Sonarr/Radarr was restarting at that moment the
+    push is lost and Prowlarr only retries hours later, so while we wait we ask Prowlarr to sync again."""
+    t0, last_nudge, n = time.time(), 0, 0
     while time.time() - t0 < timeout:
         n = len([i for i in arr.get("/indexer") if i["name"].endswith("(Prowlarr)")])
         if n >= minimum:
             ok(f"{arr.name}: {n} indexers synced from Prowlarr")
             return n
+        if prowlarr is not None and time.time() - last_nudge >= nudge_every:
+            last_nudge = time.time()
+            r = prowlarr.req("POST", "/command", {"name": "ApplicationIndexerSync"})
+            if not r.ok:
+                info(f"prowlarr: couldn't ask for a sync yet (HTTP {r.status}); will try again")
         time.sleep(3)
     warn(f"{arr.name}: only {n} Prowlarr indexers synced after {timeout}s (they keep syncing in the background)")
     return n

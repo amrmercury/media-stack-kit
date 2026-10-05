@@ -94,7 +94,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        seed: [1, 2, 3]
+        seed: [1, 2, 3, 4]
     steps:
       - uses: actions/checkout@v4
       - name: Fake answers (full)

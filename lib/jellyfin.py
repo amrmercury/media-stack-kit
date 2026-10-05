@@ -17,9 +17,19 @@ class Jellyfin:
         self.base, self.stack_dir = base.rstrip("/"), stack_dir
         self.token = None
 
+    # Jellyfin answers 502/503/504 while it is (re)starting or still loading after a plugin install or the first-run wizard,
+    # which takes much longer on a slow laptop than on a fast machine. That is "not ready yet", not "refused": wait and retry.
+    BUSY = (502, 503, 504)
+    BUSY_WAIT = 240
+
     def req(self, method, path, body=None, form=None, timeout=60, auth=True, device_id="media-stack-installer"):
         h = {"Authorization": _auth(device_id) + (f', Token="{self.token}"' if (self.token and auth) else "")}
-        return http(method, f"{self.base}{path}", headers=h, json_body=body, form=form, timeout=timeout)
+        t0 = time.time()
+        while True:
+            r = http(method, f"{self.base}{path}", headers=h, json_body=body, form=form, timeout=timeout)
+            if r.status not in self.BUSY or time.time() - t0 > self.BUSY_WAIT:
+                return r
+            time.sleep(3)
 
     def must(self, method, path, body=None, **kw):
         r = self.req(method, path, body, **kw)
@@ -54,6 +64,9 @@ class Jellyfin:
 
     def login(self, user, password):
         r = self.req("POST", "/Users/AuthenticateByName", {"Username": user, "Pw": password}, auth=False)
+        if r.status in self.BUSY:
+            raise StackError(f"Jellyfin is still starting up (HTTP {r.status}) after waiting {self.BUSY_WAIT}s. "
+                             "This computer may be very busy or low on memory. Click Try again; it is safe to re-run.")
         if not r.ok:
             raise StackError(
                 f"Jellyfin rejected the login '{user}' (HTTP {r.status}). If Jellyfin was set up before with a "

@@ -57,6 +57,11 @@ def ids():
 
 
 def docker_gid():
+    """The group that owns the Docker socket (what a container needs to be able to use it)."""
+    try:
+        return os.stat("/var/run/docker.sock").st_gid
+    except OSError:
+        pass
     try:
         return grp.getgrnam("docker").gr_gid
     except KeyError:
@@ -121,9 +126,12 @@ def build_compose(a, S, pins, puid, pgid):
                                 environment=[f"TZ={tz}", "CRON_SCHEDULE=@daily"])
     services["pearlarr"] = svc("pearlarr", labels=nolabel, user=f"{puid}:{pgid}",
                                volumes=[f"{stack}/pearlarr:/config"], environment=[f"TZ={tz}"])
+    # Homepage shows each tile's green "running"/red "error" tag by asking Docker through the socket. The app drops to PUID:PGID at
+    # start-up and loses supplemental groups, so make the socket's own group its primary group (the file owner stays you).
+    sock_gid = docker_gid()
     hp_env = {"HOMEPAGE_ALLOWED_HOSTS":
               f"{a['host_ip']}:{ports['homepage']},localhost:{ports['homepage']},127.0.0.1:{ports['homepage']}",
-              "PUID": puid, "PGID": pgid}
+              "PUID": puid, "PGID": sock_gid if sock_gid is not None else pgid}
     hp = svc("homepage", ports=[f"{ports['homepage']}:3000"],
              volumes=[f"{stack}/homepage:/app/config", f"{stack}/homepage/icons:/app/public/icons",
                       "/var/run/docker.sock:/var/run/docker.sock:ro"], environment=hp_env)
@@ -215,7 +223,8 @@ def render_all(a, state_dir, force=False):
     cache = a.get("cache", {})
     if cache.get("path"):
         ensure_dir(cache["path"])
-    for sub in ("symlinks/movies", "symlinks/shows"):
+    # symlinks/<category> is where decypharr puts finished downloads; Sonarr/Radarr warn "directory does not appear to exist" until it exists
+    for sub in ("symlinks/movies", "symlinks/shows", "symlinks/tv-sonarr", "symlinks/radarr"):
         ensure_dir(os.path.join(a["media_root"], sub))
     ensure_dir(os.path.join(a["media_root"], "decypharr"))
     if os.geteuid() == 0:
@@ -224,7 +233,7 @@ def render_all(a, state_dir, force=False):
             for f in files:
                 os.chown(os.path.join(root, f), puid, pgid)
         for d in (a["media_root"], os.path.join(a["media_root"], "symlinks"),
-                  os.path.join(a["media_root"], "symlinks/movies"), os.path.join(a["media_root"], "symlinks/shows")):
+                  *(os.path.join(a["media_root"], "symlinks", x) for x in ("movies", "shows", "tv-sonarr", "radarr"))):
             os.chown(d, puid, pgid)
 
     # the two non-image services live inside the stack dir, so the stack keeps working if the kit is deleted

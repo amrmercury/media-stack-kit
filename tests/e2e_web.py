@@ -160,6 +160,8 @@ def flow(page, srv, url):
     shot(page, "review")
     page.get_by_role("button", name="Install").click()
     expect(page.locator("h1")).to_have_text("Installing…")
+    expect(page.locator(".creds")).to_be_visible(timeout=30000)
+    assert "ciuser" in page.locator(".creds").inner_text() and "Passw0rd!ci-test" in page.locator(".creds").inner_text()
     stage("installing (real install, fake keys)")
     time.sleep(20)
     shot(page, "installing")

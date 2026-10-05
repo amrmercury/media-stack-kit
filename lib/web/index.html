@@ -51,6 +51,10 @@ button:disabled{opacity:.5;cursor:default}
 .sw input:checked+.track{background:var(--blue)}
 .sw input:checked+.track:after{left:16px}
 .sw input:focus-visible+.track{outline:3px solid var(--blue);outline-offset:2px}
+.creds{display:flex;flex-wrap:wrap;gap:12px 40px;align-items:flex-end;margin:16px 0 4px;padding:14px 18px;border:2px solid var(--sun-deep);border-radius:14px;background:var(--sun-soft)}
+.creds small{display:block;font-size:13px;color:var(--mute);font-weight:400}
+.creds b{display:block;font-size:28px;line-height:1.2;font-weight:800;user-select:all;word-break:break-all}
+.creds .credsnote{font-size:14px;color:var(--mute);margin-left:auto}
 .nav{display:flex;justify-content:space-between;margin-top:24px;gap:10px}
 .navr{display:flex;gap:10px}
 .drow{display:grid;grid-template-columns:190px 1fr auto;gap:10px;align-items:end;margin-top:8px}
@@ -403,7 +407,7 @@ async function startInstall() {
 function showProgress() {
   LOG = []; SINCE = 0; LASTSTATUS = "running";
   document.getElementById("steps").innerHTML = "";
-  document.getElementById("card").innerHTML = '<h1>Installing…</h1><p class="lead" id="pstat"><span class="spin"></span> This runs by itself. You can leave this page open and come back.</p><div class="prog"><ul class="psteps" id="psteps"></ul><div class="log" id="log"></div></div><div id="pend"></div>';
+  document.getElementById("card").innerHTML = '<h1>Installing…</h1><p class="lead" id="pstat"><span class="spin"></span> This runs by itself. You can leave this page open and come back.</p><div class="prog"><ul class="psteps" id="psteps"></ul><div class="log" id="log"></div></div><div id="creds"></div><div id="pend"></div>';
   clearInterval(TIMER); TIMER = setInterval(poll, 1000); poll();
 }
 function stepsFromLog(lines) {
@@ -423,6 +427,8 @@ async function poll() {
   const near = log.scrollTop + log.clientHeight >= log.scrollHeight - 40;
   log.innerHTML = LOG.map(l => '<div class="' + l.t + '">' + (l.t === "ok" ? "✔ " : l.t === "fail" ? "✘ " : l.t === "warn" ? "! " : l.t === "info" ? "• " : "") + esc(l.text) + "</div>").join("");
   if (near) log.scrollTop = log.scrollHeight;
+  if (r.login) document.getElementById("creds").innerHTML = '<div class="creds"><div><small>Username</small><b>' + esc(r.login.user) +
+    '</b></div><div><small>Password</small><b>' + esc(r.login.password) + '</b></div><div class="credsnote">Use this login in every app.</div></div>';
   const steps = stepsFromLog(LOG), done = r.status === "done", failed = r.status === "failed";
   document.getElementById("psteps").innerHTML = steps.map((s, i) => {
     const last = i === steps.length - 1;
@@ -445,6 +451,7 @@ function finish(r, failed) {
   document.querySelector("h1").textContent = "All done: installed, configured and verified";
   stat.innerHTML = '<span style="color:var(--blue)">✔ Sign in everywhere with <b>' + esc(sm.user) + "</b> and the password you chose.</span>";
   end.innerHTML = '<h2>Open your apps</h2><div class="links">' + sm.urls.map(u => '<a href="' + esc(u.url) + '" target="_blank" rel="noopener"><b>' + esc(u.name) + "</b><small>" + esc(u.desc) + "<br>" + esc(u.url) + "</small></a>").join("") + "</div>" +
+    (LOG.filter(l => l.t === "warn" && l.text.indexOf("ATTENTION:") === 0).map(l => '<div class="warnbox">' + esc(l.text.replace("ATTENTION: ", "")) + "</div>").join("")) +
     "<h2>What's left for you</h2><ul>" + sm.notes.map(n => "<li>" + esc(n) + "</li>").join("") + "</ul>" +
     '<div class="nav"><button onclick="copyLog()">Copy log</button><button class="primary" onclick="finishUi()">Finish</button></div>';
 }

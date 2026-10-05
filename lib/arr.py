@@ -280,6 +280,29 @@ def seed_prowlarr(p: Arr, a, S, sonarr_key, radarr_key):
     ok("prowlarr configured")
 
 
+def reenable(app: Arr, name, flags, tries=3, gap=8):
+    """An indexer whose connection test failed when first saved (tracker slow, FlareSolverr still warming up, the app it talks to
+    restarting) was saved switched OFF. Try to switch it on again, now that everything is up. Returns True / False / None (absent)."""
+    def current():
+        return next((i for i in app.get("/indexer") if i["name"] == name), None)
+    for n in range(tries):
+        cur = current()
+        if cur is None:
+            return None
+        if all(cur.get(f) for f in flags):
+            return True
+        try:
+            app.upsert("/indexer", dict(cur, **{f: True for f in flags}), force_save=False)     # saving runs the connection test
+        except StackError:
+            pass
+        cur = current()
+        if cur and all(cur.get(f) for f in flags):
+            return True
+        if n < tries - 1:
+            time.sleep(gap)
+    return False
+
+
 def wait_indexers_synced(arr: Arr, minimum, timeout=240, prowlarr: Arr = None, nudge_every=25):
     """Prowlarr pushes its indexers into Sonarr/Radarr when the app is registered. If Sonarr/Radarr was restarting at that moment the
     push is lost and Prowlarr only retries hours later, so while we wait we ask Prowlarr to sync again."""

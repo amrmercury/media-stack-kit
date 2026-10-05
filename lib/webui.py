@@ -341,6 +341,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.send_json(load_json(app.answers_path, {}))
         if path == "/api/progress":
             snap = app.install.snapshot(int(q.get("since") or 0))
+            if app.install.answers:
+                snap["login"] = {"user": app.install.answers["admin_user"], "password": app.install.answers["admin_pass"]}
             if snap["status"] == "done" and app.install.answers:
                 snap["summary"] = summary_for(app.install.answers)
             return self.send_json(snap)

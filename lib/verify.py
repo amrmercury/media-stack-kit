@@ -60,6 +60,27 @@ def run(a, S, ports, jf, js, bz, dec, sonarr, radarr, prowlarr, running):
     check("bazarr: English + Arabic profile",
           lambda: ((lambda p: (not a.get("subtitles") or any("ar" in [i["language"] for i in x["items"]] for x in p), f"{len(p)} profile(s)"))(bz.profiles())))
 
+    # ---- Homepage's green/red status tags need Docker access: check what the page itself would show
+    if "homepage" in running:
+        def tags():
+            import json as _j
+            names = [n for s, n in running.items() if s != "homepage"]
+            bad = []
+            for n in names:
+                r = http("GET", f"http://localhost:{ports['homepage']}/api/docker/status/my-docker/{n}")
+                try:
+                    st = _j.loads(r.body).get("status")
+                except Exception:  # noqa: BLE001
+                    st = None
+                if st != "running":
+                    bad.append(f"{n}={st}")
+            return (not bad, f"{len(names)} tiles show running" if not bad else "tiles would show ERROR: " + ", ".join(bad[:6]))
+        check("homepage: every tile shows 'running' (not ERROR)", tags)
+    for app, kind in ((sonarr, "sonarr"), (radarr, "radarr")):
+        check(f"{kind}: sees the download folder (no health warning)",
+              lambda app=app: ((lambda h: (not h, "; ".join(h)[:140] if h else "clean"))(
+                  [x["message"] for x in app.get("/health") if "does not appear to exist" in x.get("message", "")])))
+
     # ---- everything else just has to answer
     for svc, port, path in (("homepage", 3000, "/"), ("flaresolverr", 8191, "/"), ("babysitarr", 8284, "/")):
         if svc in running:

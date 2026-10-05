@@ -176,6 +176,37 @@ def resilient(label, fn, settle, tries=3):
             settle()
 
 
+def attention(msg):
+    """Shown in the log AND as a highlighted box on the final screen: something the user should look at, but not a failed install."""
+    warn("ATTENTION: " + msg)
+
+
+def arabic_check(a, prowlarr, sonarr, radarr):
+    from arr import reenable, PRIVATE_NEEDS
+    accounts = a.get("indexer_accounts", {})
+    bad = 0
+    for name, (key, _) in PRIVATE_NEEDS.items():
+        if key in accounts:
+            r = reenable(prowlarr, name, ["enable"])
+            if r is True:
+                ok(f"prowlarr: {name} is on")
+            elif r is False:
+                bad += 1
+                attention(f"{name} could not be switched on: the site rejected the account details, or it didn't answer. "
+                          f"Check them in Prowlarr (Indexers), or run the installer again with the right ones.")
+    if a.get("enable_arabarr"):
+        for app in (sonarr, radarr):
+            r = reenable(app, "Arabarr", ["enableRss", "enableAutomaticSearch", "enableInteractiveSearch"])
+            if r is True:
+                ok(f"{app.name}: Arabarr is on")
+            elif r is False:
+                bad += 1
+                attention(f"Arabarr is OFF in {app.name.capitalize()}, so Arabic titles won't be found there. This usually means the "
+                          "ArabP2P login or the TMDB key was rejected. Fix them and run the installer again.")
+    if not bad:
+        ok("Arabic sources look good")
+
+
 def firewall_note():
     """Other devices (a TV, a phone) reach Jellyfin over the network; an active firewall on this PC would silently block them."""
     for cmd, active in ((["ufw", "status"], "Status: active"), (["firewall-cmd", "--state"], "running")):
@@ -276,6 +307,7 @@ def main():
         t = open(envp).read().replace("__SET_BY_INSTALLER__", str(idx["id"]))
         open(envp, "w").write(t)
         compose(stack, "up", "-d", "arabarr", timeout=300)
+        wait_ready("arabarr", lambda: http("GET", L("arabarr") + "/").status == 200, 90)
         box["arabarr"] = {"proxy_key": S["arabarr_proxy"]}
         ok("Arabarr started")
 
@@ -292,6 +324,8 @@ def main():
     if a.get("enable_arabarr"):
         stage("Arabarr", arabarr_setup)
     stage("Sonarr + Radarr", sonarr_radarr_setup)
+    step("Arabic sources: checking they are switched on")
+    arabic_check(a, prowlarr, sonarr, radarr)
     stage("Bazarr: subtitles", lambda: bz.configure(a, S))
     stage("Jellyseerr", lambda: js.configure(a, S, sonarr, radarr, f"http://{a['host_ip']}:{ports['jellyfin']}"))
 
@@ -325,7 +359,7 @@ def summary(a, ports, secs):
             ("Decypharr", "decypharr")]
     for label, svc in rows:
         print(f"   {label:<24} http://{h}:{ports[svc]}")
-    print(f"\n   Sign in everywhere with:  {a['admin_user']}  /  (the password you chose)")
+    print(f"\n   \033[1mUsername: {a['admin_user']}      Password: {a['admin_pass']}\033[0m   (the same login in every app)")
     print("\n   What's left for you:")
     print("   1. Open Jellyseerr, request a show or movie, and watch it appear in Jellyfin.")
     if not a.get("subtitles"):

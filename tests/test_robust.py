@@ -180,4 +180,34 @@ n = arr.wait_indexers_synced(fs, 5, timeout=30, prowlarr=fp, nudge_every=0)
 check("missing indexers make the installer ask Prowlarr to sync again, then succeed",
       n == 6 and fp.posts and fp.posts[0] == ("POST", "/command", {"name": "ApplicationIndexerSync"}))
 
+# --- Arabic sources: an indexer saved OFF by a failed first test is switched on again; a hopeless one is reported, not hidden
+class IdxApp:
+    def __init__(self, name, flags_on_after, flags):
+        self.name, self.flags, self.on_after, self.state, self.puts = name, flags, flags_on_after, {f: False for f in flags}, 0
+    def get(self, path): return [{"name": "Arabarr", "id": 7, **self.state}]
+    def upsert(self, ep, item, force_save=True):
+        self.puts += 1
+        assert force_save is False                                    # must run the connection test
+        if self.puts >= self.on_after: self.state = {f: True for f in self.flags}
+        else: raise StackError("test failed")
+arr.time = FastTime()
+okapp = IdxApp("sonarr", 2, ["enableRss", "enableAutomaticSearch"])
+check("an Arabarr indexer that was saved OFF is switched on once it works", arr.reenable(okapp, "Arabarr", ["enableRss", "enableAutomaticSearch"]) is True and okapp.puts == 2)
+hopeless = IdxApp("sonarr", 99, ["enable"])
+check("an indexer that never passes its test is reported as False (so the user is told)", arr.reenable(hopeless, "Arabarr", ["enable"], tries=3) is False and hopeless.puts == 3)
+check("an indexer that doesn't exist at all gives None", arr.reenable(type("X", (), {"get": lambda s, p: []})(), "Arabarr", ["enable"]) is None)
+
+attn = []
+deploy.warn = lambda m: attn.append(m)
+deploy.ok = lambda m: None
+class P:
+    def get(self, path): return [{"name": "ArabP2P", "enable": False, "id": 1}]
+    def upsert(self, *a, **k): raise StackError("login failed")
+deploy.arabic_check({"indexer_accounts": {"arabp2p": {"username": "u", "password": "p"}}, "enable_arabarr": False}, P(), None, None)
+check("a rejected ArabP2P login produces a visible ATTENTION message", any(m.startswith("ATTENTION:") and "ArabP2P" in m for m in attn))
+
+# --- the Docker group for Homepage's status tags comes from the socket itself
+check("homepage runs with the Docker socket's group as its primary group", render.docker_gid() is None or
+      render.build_compose({**ans, "selinux_enforcing": False}, S, pins, 1000, 1000)["services"]["homepage"]["environment"]["PGID"] == render.docker_gid())
+
 print(f"\n{PASS} robustness checks passed")

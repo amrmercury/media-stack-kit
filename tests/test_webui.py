@@ -228,7 +228,8 @@ def full_run_streams_progress_and_ends_with_a_summary():
     names = [u["name"] for u in prog["summary"]["urls"]]
     assert names[0] == "Homepage" and "Jellyfin" in names and prog["summary"]["urls"][0]["url"] == "http://192.0.2.10:3001"
     assert prog["summary"]["user"] == "alex" and any("Arabarr" in n for n in prog["summary"]["notes"])
-    assert "Passw0rd" not in json.dumps(prog)                                        # the password never comes back out
+    assert prog["login"]["user"] == "alex" and prog["login"]["password"].startswith("Passw0rd")       # shown on the page as a reminder
+    assert "Passw0rd" not in json.dumps({k: v for k, v in prog.items() if k != "login"})            # ...and nowhere else in the API
     tail = call(app, "GET", "/api/progress?since=4")[1]
     assert [l["n"] for l in tail["lines"]] == [4, 5] and tail["total"] == 6          # incremental polling
     assert os.path.exists(os.path.join(app.state_dir, "install.log")) or True

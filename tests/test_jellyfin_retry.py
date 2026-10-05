@@ -12,9 +12,13 @@ def fake_http(seq):
         calls.append(url); return next(it)
     return f
 
-jellyfin.time.sleep = lambda s: None
+class FakeTime:                                   # only jellyfin.py sees this; the real time module stays untouched
+    def __init__(self): self.now = 0
+    def sleep(self, s): self.now += s
+    def time(self): self.now += 1; return self.now
 ok_login = Resp(200, '{"AccessToken": "tok", "User": {"Id": "u1"}}', {"Content-Type": "application/json"})
 
+jellyfin.time = FakeTime()
 jellyfin.http = fake_http([Resp(503, "", {}), Resp(503, "", {}), ok_login])
 j = jellyfin.Jellyfin("http://x", "/s"); j.login("alex", "pw")
 assert j.token == "tok" and len(calls) == 3, "should retry through 503s and then log in"
@@ -25,7 +29,7 @@ try: j.login("alex", "bad"); raise SystemExit("401 must raise")
 except StackError as e: assert "rejected the login" in str(e)
 print("  ok  a real 401 is still reported as a refused login")
 
-t = iter(range(10000)); jellyfin.time.time = lambda: next(t)          # fake clock: each call advances 1s
+jellyfin.time = FakeTime()
 jellyfin.http = lambda *a, **k: Resp(503, "", {})
 j = jellyfin.Jellyfin("http://x", "/s")
 try: j.login("alex", "pw"); raise SystemExit("persistent 503 must raise")

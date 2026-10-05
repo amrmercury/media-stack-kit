@@ -80,6 +80,8 @@ def flow(page, srv, url):
     assert pw.get_attribute("type") == "password" and pw2.get_attribute("type") == "password"
     page.locator("label.sw").click()
     assert pw.get_attribute("type") == "text"
+    page.get_by_role("button", name="Back").click()           # re-enter the page so the earlier error box is gone for the picture
+    page.get_by_role("button", name="Start").click()
     shot(page, "login")
     page.get_by_role("button", name="Next").click()
 

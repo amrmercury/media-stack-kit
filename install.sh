@@ -14,6 +14,7 @@
 # so the distro doesn't matter beyond installing Docker itself.
 set -euo pipefail
 
+ORIG_ARGS=("$@")        # kept for re-launching ourselves (to stay awake, or to pick up the new docker group)
 KIT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$KIT"
 
@@ -72,7 +73,7 @@ pkg_install() {   # pkg_install <apt-name> <dnf-name> <pacman-name> <zypper-name
 if [ -z "${STACK_AWAKE:-}" ] && command -v systemd-inhibit >/dev/null 2>&1 \
    && systemd-inhibit --what=sleep:idle --mode=block --why=test true >/dev/null 2>&1; then
   export STACK_AWAKE=1
-  exec systemd-inhibit --what=sleep:idle --who="media-stack installer" --why="Installing the media stack" --mode=block "$0" "$@"
+  exec systemd-inhibit --what=sleep:idle --who="media-stack installer" --why="Installing the media stack" --mode=block "$0" ${ORIG_ARGS[@]+"${ORIG_ARGS[@]}"}
 fi
 
 say "Checking what this machine needs"
@@ -122,7 +123,7 @@ if ! docker info >/dev/null 2>&1; then
   if [ -z "${STACK_REEXEC:-}" ] && command -v sg >/dev/null; then
     # pick up the new group right now instead of asking you to log out and in
     export STACK_REEXEC=1
-    exec sg docker -c "$(printf '%q ' "$0" "$@")"
+    exec sg docker -c "$(printf '%q ' "$0" ${ORIG_ARGS[@]+"${ORIG_ARGS[@]}"})"
   fi
   die "Docker is installed but this user can't use it. Log out and back in (or reboot), then run ./install.sh again."
 fi

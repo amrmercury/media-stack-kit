@@ -171,7 +171,7 @@ jobs:
           docker run --rm -v "$PWD:/kit:ro" "${{ matrix.image }}" bash -c '
             set -e
             if command -v apt-get >/dev/null; then apt-get update -qq && apt-get install -y -qq sudo >/dev/null
-            elif command -v dnf >/dev/null; then dnf install -y -q sudo shadow-utils >/dev/null
+            elif command -v dnf >/dev/null; then dnf install -y -q sudo shadow-utils util-linux >/dev/null
             elif command -v pacman >/dev/null; then pacman -Sy --noconfirm sudo >/dev/null
             elif command -v zypper >/dev/null; then zypper --non-interactive install sudo shadow >/dev/null; fi
             useradd -m tester; echo "tester ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/tester

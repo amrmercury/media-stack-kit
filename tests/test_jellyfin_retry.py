@@ -35,4 +35,23 @@ j = jellyfin.Jellyfin("http://x", "/s")
 try: j.login("alex", "pw"); raise SystemExit("persistent 503 must raise")
 except StackError as e: assert "still starting up" in str(e) and "rejected" not in str(e)
 print("  ok  a Jellyfin that never wakes up gives a clear 'still starting' message")
-print("\n3 jellyfin retry checks passed")
+def flaky(seq):
+    it = iter(seq)
+    def f(method, url, **kw):
+        v = next(it)
+        if isinstance(v, Exception): raise v
+        return v
+    return f
+
+jellyfin.time = FakeTime()
+jellyfin.http = flaky([StackError("cannot reach x: [Errno 104] Connection reset by peer"), StackError("cannot reach x: refused"), ok_login])
+j = jellyfin.Jellyfin("http://x", "/s"); j.login("alex", "pw")
+assert j.token == "tok"
+print("  ok  a connection reset while Jellyfin restarts is waited out too")
+
+jellyfin.time = FakeTime()
+jellyfin.http = lambda *a, **k: (_ for _ in ()).throw(StackError("cannot reach x: reset"))
+try: jellyfin.Jellyfin("http://x", "/s").login("alex", "pw"); raise SystemExit("must raise")
+except StackError as e: assert "cannot reach" in str(e)
+print("  ok  a Jellyfin that never comes back still fails clearly")
+print("\n5 jellyfin retry checks passed")

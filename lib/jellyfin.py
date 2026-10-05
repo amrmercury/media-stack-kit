@@ -26,7 +26,13 @@ class Jellyfin:
         h = {"Authorization": _auth(device_id) + (f', Token="{self.token}"' if (self.token and auth) else "")}
         t0 = time.time()
         while True:
-            r = http(method, f"{self.base}{path}", headers=h, json_body=body, form=form, timeout=timeout)
+            try:
+                r = http(method, f"{self.base}{path}", headers=h, json_body=body, form=form, timeout=timeout)
+            except StackError:                       # connection refused / reset while the server restarts: same thing, wait
+                if time.time() - t0 > self.BUSY_WAIT:
+                    raise
+                time.sleep(3)
+                continue
             if r.status not in self.BUSY or time.time() - t0 > self.BUSY_WAIT:
                 return r
             time.sleep(3)

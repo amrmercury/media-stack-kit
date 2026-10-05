@@ -63,19 +63,16 @@ def run(a, S, ports, jf, js, bz, dec, sonarr, radarr, prowlarr, running):
     # ---- Homepage's green/red status tags need Docker access: check what the page itself would show
     if "homepage" in running:
         def tags():
+            # what the page itself asks: one call listing every container's state (needs the Docker socket to be readable)
             import json as _j
-            names = [n for sv, n in running.items() if sv != "homepage"]
-            bad, sample = [], ""
-            for n in names:
-                r = http("GET", f"http://localhost:{ports['homepage']}/api/docker/status/{n}/my-docker")     # container first, then server
-                try:
-                    st = _j.loads(r.body).get("status")
-                except Exception:  # noqa: BLE001
-                    st = None
-                if st not in ("running", "healthy") and not str(st).startswith("running"):
-                    bad.append(f"{n}={st}")
-                    sample = sample or f"HTTP {r.status}: {r.body[:100]!r}"
-            return (not bad, f"{len(names)} tiles show running" if not bad else "tiles would show ERROR: " + ", ".join(bad[:6]) + " | " + sample)
+            names = [n for svc, n in running.items() if svc != "homepage"]
+            r = http("GET", f"http://localhost:{ports['homepage']}/api/docker/statuses?server=my-docker&containers={','.join(names)}")
+            try:
+                st = (_j.loads(r.body).get("statuses") or {})
+            except Exception:  # noqa: BLE001
+                return (False, f"HTTP {r.status}: {r.body[:120]!r}")
+            bad = [f"{n}={(st.get(n) or {}).get('status')}" for n in names if (st.get(n) or {}).get("status") != "running"]
+            return (not bad, f"{len(names)} tiles show running" if not bad else "tiles would show ERROR: " + ", ".join(bad[:6]))
         check("homepage: every tile shows 'running' (not ERROR)", tags)
     for app, kind in ((sonarr, "sonarr"), (radarr, "radarr")):
         check(f"{kind}: sees the download folder (no health warning)",

@@ -2,7 +2,7 @@
 import json, os, socket, sys, time, urllib.parse
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from common import StackError, compose, http, info, ok, warn, seed_json, seed_text, wait_ready, write_file, \
+from common import Fatal, StackError, compose, http, info, ok, warn, seed_json, seed_text, wait_ready, write_file, \
     save_json, load_json
 
 def _auth(device_id="media-stack-installer"):
@@ -74,7 +74,7 @@ class Jellyfin:
             raise StackError(f"Jellyfin is still starting up (HTTP {r.status}) after waiting {self.BUSY_WAIT}s. "
                              "This computer may be very busy or low on memory. Click Try again; it is safe to re-run.")
         if not r.ok:
-            raise StackError(
+            raise Fatal(
                 f"Jellyfin rejected the login '{user}' (HTTP {r.status}). Jellyfin was probably set up by an earlier attempt with a "
                 f"different username or password. To start clean, run ./uninstall.sh --yes in the installer folder, then ./install.sh.")
         d = r.json()

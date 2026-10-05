@@ -87,10 +87,14 @@ jobs:
           retention-days: 7
 
   stress:
-    name: install on a slow, busy machine whose apps keep restarting
+    name: slow busy machine, apps restarting (seed ${{ matrix.seed }})
     needs: unit
     runs-on: ubuntu-latest
     timeout-minutes: 70
+    strategy:
+      fail-fast: false
+      matrix:
+        seed: [1, 2, 3]
     steps:
       - uses: actions/checkout@v4
       - name: Fake answers (full)
@@ -101,7 +105,7 @@ jobs:
           sudo apt-get install -y -qq stress-ng >/dev/null
           nohup stress-ng --cpu 2 --cpu-load 85 --vm 1 --vm-bytes 1800M --vm-keep --timeout 3000s >/dev/null 2>&1 &
           rm -f "$RUNNER_TEMP/chaos.stop"
-          nohup bash tests/ci_chaos.sh "$RUNNER_TEMP/chaos.stop" "$RUNNER_TEMP/chaos.log" >/dev/null 2>&1 &
+          CHAOS_SEED=${{ matrix.seed }} nohup bash tests/ci_chaos.sh "$RUNNER_TEMP/chaos.stop" "$RUNNER_TEMP/chaos.log" >/dev/null 2>&1 &
           set +e
           ./install.sh --answers "$RUNNER_TEMP/answers.json" --state-dir "$RUNNER_TEMP/state" 2>&1 | tee "$RUNNER_TEMP/stress-run.log"
           code=${PIPESTATUS[0]}
@@ -115,7 +119,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: diag-stress
+          name: diag-stress-${{ matrix.seed }}
           path: diag
 
   resume:

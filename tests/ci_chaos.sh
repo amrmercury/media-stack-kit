@@ -4,6 +4,7 @@
 # (CI machines only. Never run this on a real server.)   usage: ci_chaos.sh <stop-file> <log>
 STOP="$1"; LOG="$2"
 APPS=(jellyfin sonarr radarr prowlarr bazarr jellyseerr flaresolverr homepage)
+RANDOM=${CHAOS_SEED:-1}
 sleep 45
 n=0
 while [ ! -e "$STOP" ]; do

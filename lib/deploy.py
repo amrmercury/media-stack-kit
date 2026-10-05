@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import hardware, homepage, render, verify
 from arr import Arr, seed_prowlarr, seed_sonarr_radarr, wait_indexers_synced
 from bazarr import Bazarr
-from common import KIT, StackError, compose, docker, fail, info, load_json, ok, save_json, step, warn, http, wait_ready
+from common import KIT, Fatal, StackError, compose, docker, fail, info, load_json, ok, save_json, step, warn, http, wait_ready
 from decypharr import Decypharr
 from jellyfin import Jellyfin
 from jellyseerr import Jellyseerr
@@ -160,6 +160,22 @@ def compose_up_with_retries(stack, services, tries=4):
             time.sleep(15 * n)
 
 
+def resilient(label, fn, settle, tries=3):
+    """Run one setup stage. Apps restart and slow machines stall at odd moments, so if the stage fails, wait until every app answers
+    again and run it again (every stage is safe to repeat: the kill-and-resume CI test proves it). Fatal problems stop at once."""
+    for n in range(1, tries + 1):
+        try:
+            return fn()
+        except Fatal:
+            raise
+        except StackError as e:
+            if n == tries:
+                raise
+            warn(f"{label}: {str(e)[:220]}")
+            warn(f"An app was probably still starting or restarting. Waiting for all of them, then repeating this step ({n}/{tries - 1})...")
+            settle()
+
+
 def firewall_note():
     """Other devices (a TV, a phone) reach Jellyfin over the network; an active firewall on this PC would silently block them."""
     for cmd, active in ((["ufw", "status"], "Status: active"), (["firewall-cmd", "--state"], "running")):
@@ -216,58 +232,68 @@ def main():
     bz = Bazarr(L("bazarr"), S["bazarr"])
     dec = Decypharr(L("decypharr"), stack, S["decypharr_token"])
 
+    def settle():
+        for app in (sonarr, radarr, prowlarr):
+            app.wait_ready()
+        jf.wait_ready(); js.wait_ready(); bz.wait_ready(); dec.wait_ready()
+        wait_ready("flaresolverr", lambda: http("GET", L("flaresolverr") + "/").status == 200, 120)
+
     step("Waiting for every app to really be up (checking their APIs, not just their ports)")
-    for app in (sonarr, radarr, prowlarr):
-        app.wait_ready()
-    jf.wait_ready(); js.wait_ready(); bz.wait_ready(); dec.wait_ready()
-    wait_ready("flaresolverr", lambda: http("GET", L("flaresolverr") + "/").status == 200, 120)
+    settle()
+    box = {}
 
-    step("Decypharr: your login")
-    dec.register(a["admin_user"], a["admin_pass"])
-    if not dec.verify_qbit_login(a["admin_user"], a["admin_pass"]):
-        raise StackError("decypharr was already registered with a different username/password than the one you "
-                         f"entered. Remove {stack}/decypharr/auth.json (keep nothing else) and re-run, or use the "
-                         "existing login.")
+    def stage(title, fn):
+        step(title)
+        resilient(title, fn, settle)
 
-    step("Jellyfin: setup, your account, plugins, libraries")
-    jf.first_run(a["admin_user"], a["admin_pass"], socket.gethostname() or "Jellyfin")
-    jfkey = jf.api_key()
-    jf.apply_settings()
-    jf.pin_plugin_versions()
-    time.sleep(5)       # let the server refresh its plugin repositories
-    jf.install_plugins()
-    jf.restart_with_configs(a, S)        # plugin settings are written while it's stopped, so they stick
-    jf.login(a["admin_user"], a["admin_pass"])
-    jf.libraries(a)
-    jf.direct_play_policy()
+    def decypharr_login():
+        dec.register(a["admin_user"], a["admin_pass"])
+        if not dec.verify_qbit_login(a["admin_user"], a["admin_pass"]):
+            raise Fatal("decypharr was already registered with a different username/password than the one you "
+                        f"entered. Remove {stack}/decypharr/auth.json (keep nothing else) and re-run, or use the "
+                        "existing login.")
 
-    step("Prowlarr: indexers")
-    seed_prowlarr(prowlarr, a, S, S["sonarr"], S["radarr"])
+    def jellyfin_setup():
+        jf.first_run(a["admin_user"], a["admin_pass"], socket.gethostname() or "Jellyfin")
+        box["jfkey"] = jf.api_key()
+        jf.apply_settings()
+        jf.pin_plugin_versions()
+        time.sleep(5)       # let the server refresh its plugin repositories
+        jf.install_plugins()
+        jf.restart_with_configs(a, S)        # plugin settings are written while it's stopped, so they stick
+        jf.login(a["admin_user"], a["admin_pass"])
+        jf.libraries(a)
+        jf.direct_play_policy()
 
-    arabarr = None
-    if a.get("enable_arabarr"):
-        step("Arabarr")
+    def prowlarr_setup():
+        seed_prowlarr(prowlarr, a, S, S["sonarr"], S["radarr"])
+
+    def arabarr_setup():
         idx = next((i for i in prowlarr.get("/indexer") if i["name"] == "ArabP2P"), None)
         if not idx:
-            raise StackError("ArabP2P isn't in Prowlarr, so Arabarr can't be set up.")
+            raise Fatal("ArabP2P isn't in Prowlarr, so Arabarr can't be set up.")
         envp = os.path.join(stack, "arabarr.env")
         t = open(envp).read().replace("__SET_BY_INSTALLER__", str(idx["id"]))
         open(envp, "w").write(t)
         compose(stack, "up", "-d", "arabarr", timeout=300)
-        arabarr = {"proxy_key": S["arabarr_proxy"]}
+        box["arabarr"] = {"proxy_key": S["arabarr_proxy"]}
         ok("Arabarr started")
 
-    step("Sonarr + Radarr")
-    seed_sonarr_radarr(sonarr, "sonarr", a, S, jfkey, arabarr)
-    seed_sonarr_radarr(radarr, "radarr", a, S, jfkey, arabarr)
-    wait_indexers_synced(sonarr, 5)
-    wait_indexers_synced(radarr, 5)
+    def sonarr_radarr_setup():
+        seed_sonarr_radarr(sonarr, "sonarr", a, S, box["jfkey"], box.get("arabarr"))
+        seed_sonarr_radarr(radarr, "radarr", a, S, box["jfkey"], box.get("arabarr"))
+        wait_indexers_synced(sonarr, 5)
+        wait_indexers_synced(radarr, 5)
 
-    step("Bazarr: subtitles")
-    bz.configure(a, S)
-
-    step("Jellyseerr")
-    js.configure(a, S, sonarr, radarr, f"http://{a['host_ip']}:{ports['jellyfin']}")
+    stage("Decypharr: your login", decypharr_login)
+    stage("Jellyfin: setup, your account, plugins, libraries", jellyfin_setup)
+    jfkey = box["jfkey"]
+    stage("Prowlarr: indexers", prowlarr_setup)
+    if a.get("enable_arabarr"):
+        stage("Arabarr", arabarr_setup)
+    stage("Sonarr + Radarr", sonarr_radarr_setup)
+    stage("Bazarr: subtitles", lambda: bz.configure(a, S))
+    stage("Jellyseerr", lambda: js.configure(a, S, sonarr, radarr, f"http://{a['host_ip']}:{ports['jellyfin']}"))
 
     step("Recyclarr: quality scores")
     r = compose(stack, "exec", "-T", "recyclarr", "recyclarr", "sync", check=False, timeout=900)
@@ -278,7 +304,12 @@ def main():
     running = homepage.generate(a, S, jfkey)
 
     jf.scan()
-    failed, _ = verify.run(a, S, ports, jf, js, bz, dec, sonarr, radarr, prowlarr, running)
+    for attempt in (1, 2, 3):
+        failed, _ = verify.run(a, S, ports, jf, js, bz, dec, sonarr, radarr, prowlarr, running)
+        if not failed or attempt == 3:
+            break
+        warn(f"{failed} check(s) failed; an app may have been restarting. Waiting for all of them and checking again ({attempt}/2)...")
+        settle()
     print()
     if failed:
         fail(f"{failed} check(s) failed. See above; re-running the installer is safe.")

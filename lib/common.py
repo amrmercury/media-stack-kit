@@ -17,6 +17,10 @@ class StackError(Exception):
     pass
 
 
+class Fatal(StackError):
+    """A problem that waiting and retrying cannot fix (wrong login for an existing app, ...): stop at once with the message."""
+
+
 # ---------------------------------------------------------------- docker
 def docker_cmd():
     """['docker'] or ['sudo','docker'] (install.sh exports STACK_DOCKER when the user isn't in the docker group)."""

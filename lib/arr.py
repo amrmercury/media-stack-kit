@@ -1,5 +1,5 @@
 """Sonarr / Radarr / Prowlarr: seed settings through each app's REST API (never by writing its DB)."""
-import json, os, sys, time
+import json, os, re, sys, time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import StackError, http, info, ok, warn, seed_json, wait_ready
@@ -31,8 +31,21 @@ class Arr:
             raise StackError(f"{self.name} GET {path} -> {r.status}: {r.body[:300]}")
         return r.json()
 
+    # When an app saves a link to another of OUR apps (Prowlarr -> Radarr, Sonarr -> decypharr, ...) it tests the connection first.
+    # If that other app is restarting right then, the save is refused with "Connection refused (radarr:7878)": wait and try again.
+    OWN_HOSTS = r"\((?:sonarr|radarr|prowlarr|bazarr|decypharr|jellyfin|jellyseerr|flaresolverr|babysitarr|arabarr):\d+\)"
+    OWN_WAIT_TRIES, OWN_WAIT_GAP = 12, 10
+
     def send(self, method, path, body):
-        r = self.req(method, path, body)
+        for attempt in range(self.OWN_WAIT_TRIES + 1):
+            r = self.req(method, path, body)
+            peer_down = (not r.ok and r.status in (400, 500, 502, 503) and re.search(self.OWN_HOSTS, r.body or "") is not None
+                         and re.search(r"refused|cannot connect|unable to connect|timed? ?out|reset|no route|unreachable",
+                                       r.body, re.I) is not None)
+            if not peer_down or attempt == self.OWN_WAIT_TRIES:
+                break
+            info(f"{self.name}: waiting for the app it needs to connect to ({attempt + 1}/{self.OWN_WAIT_TRIES})...")
+            time.sleep(self.OWN_WAIT_GAP)
         if not r.ok:
             raise StackError(f"{self.name} {method} {path} -> {r.status}: {r.body[:500]}")
         return r.json() if r.body else None

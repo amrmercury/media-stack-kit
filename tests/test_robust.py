@@ -132,4 +132,41 @@ deploy.subprocess.run = lambda cmd, **k: _R("Status: inactive")
 check("no firewall, no note", deploy.firewall_note() == "")
 deploy.subprocess.run = _real_run
 
+# --- a stage that fails because an app is still settling is repeated; a fatal problem is not
+from common import Fatal
+settled = []; runs = []
+def stage_fn():
+    runs.append(1)
+    if len(runs) < 3: raise StackError("prowlarr POST /applications -> 400: cannot connect to Radarr")
+    return "done"
+check("a failing stage waits for the apps and repeats until it works",
+      deploy.resilient("t", stage_fn, lambda: settled.append(1)) == "done" and len(runs) == 3 and len(settled) == 2)
+runs.clear(); settled.clear()
+def always_fails(): runs.append(1); raise StackError("real bug")
+try: deploy.resilient("t", always_fails, lambda: settled.append(1)); ok = False
+except StackError: ok = len(runs) == 3
+check("a stage that keeps failing is reported after 3 tries", ok)
+runs.clear()
+def fatal(): runs.append(1); raise Fatal("Jellyfin rejected the login")
+try: deploy.resilient("t", fatal, lambda: None); ok = False
+except Fatal: ok = len(runs) == 1
+check("a fatal problem (wrong existing login) stops at once", ok)
+
+# --- Prowlarr/Sonarr saving a link to another of our apps that is mid-restart
+import arr
+class FakeResp:
+    def __init__(self, status, body): self.status, self.body = status, body; self.ok = 200 <= status < 300
+    def json(self): return {"id": 1}
+a_ = arr.Arr("prowlarr", "http://x", "k", "v1"); arr.time = FastTime()
+seq = [FakeResp(400, '[{"errorMessage": "Unable to complete application test, cannot connect to Radarr. (Connection refused) (radarr:7878)"}]')] * 2 + [FakeResp(201, "{}")]
+calls_ = []
+a_.req = lambda *x, **k: (calls_.append(1), seq.pop(0))[1]
+a_.send("POST", "/applications", {"n": 1})
+check("saving a link to a restarting sibling app waits and retries", len(calls_) == 3)
+seq = [FakeResp(400, '[{"errorMessage": "Unable to connect to indexer. (Connection refused) (some-tracker.example:443)"}]')]
+calls_.clear()
+try: a_.send("POST", "/indexer", {}); ok = False
+except StackError: ok = len(calls_) == 1
+check("a dead third-party indexer is NOT waited on (only our own apps are)", ok)
+
 print(f"\n{PASS} robustness checks passed")

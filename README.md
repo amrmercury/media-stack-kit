@@ -46,6 +46,21 @@ The installer page (taken from an automated test run on a clean machine, with fa
 | ![Cache](docs/screenshots/7-cache.png) | ![Review](docs/screenshots/8-review.png) |
 | ![Installing](docs/screenshots/9-installing.png) | ![Done](docs/screenshots/10-done.png) |
 
+## Start over / remove everything
+
+```bash
+./uninstall.sh --yes            # removes the containers, the debrid mount, ~/media-stack (even root-owned files), and your saved answers
+./uninstall.sh --yes --images   # same, and also deletes the downloaded Docker images
+```
+
+It never deletes anything else in your library folder. Afterwards `./install.sh` starts from scratch.
+
+## If an install stops partway
+
+Just run `./install.sh` again (or click **Try again** on the page): it picks up where it stopped and never duplicates anything. The installer also waits
+for apps that are restarting, repeats a setup step that failed because an app was still starting, and removes leftover containers from an earlier
+attempt. If it still stops, `./install.sh --diag` writes `~/media-stack-diag.txt` with what's needed to debug it.
+
 ## What you have afterwards
 
 Open **Homepage** (`http://<this-pc>:3001`): it links to everything. Then:

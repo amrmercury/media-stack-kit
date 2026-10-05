@@ -76,9 +76,9 @@ def flow(page, srv, url):
     expect(page.locator("#card .err")).to_contain_text("don't match")
     pw2.fill("Passw0rd!ci-test")
     assert pw.get_attribute("type") == "text", "password should be visible by default"
-    page.get_by_label("Hide", exact=True).check()
+    page.locator("label.sw").click()
     assert pw.get_attribute("type") == "password" and pw2.get_attribute("type") == "password"
-    page.get_by_label("Hide", exact=True).uncheck()
+    page.locator("label.sw").click()
     assert pw.get_attribute("type") == "text"
     shot(page, "login")
     page.get_by_role("button", name="Next").click()

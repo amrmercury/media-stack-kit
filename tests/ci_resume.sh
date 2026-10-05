@@ -4,13 +4,13 @@
 set -u
 ANS="$1"; STATE="$2"; LOG="$STATE/install.log"
 run_until() {            # run_until <phrase>: start the installer, kill it ~4s after <phrase> appears in the log
-  local phrase="$1" n0 pid
-  n0=$(grep -c "$phrase" "$LOG" 2>/dev/null || echo 0)
+  local phrase="$1" n0 now pid
+  n0=$(grep -c "$phrase" "$LOG" 2>/dev/null); n0=${n0:-0}
   setsid ./install.sh --answers "$ANS" --state-dir "$STATE" > /dev/null 2>&1 &
   pid=$!
   for _ in $(seq 1 600); do
-    [ "$(grep -c "$phrase" "$LOG" 2>/dev/null || echo 0)" -gt "$n0" ] && break
-    kill -0 "$pid" 2>/dev/null || { echo "installer ended before '$phrase' appeared"; return 0; }
+    now=$(grep -c "$phrase" "$LOG" 2>/dev/null); [ "${now:-0}" -gt "$n0" ] && break
+    kill -0 "$pid" 2>/dev/null || { echo "ERROR: installer ended before '$phrase' appeared (kill point missed)"; MISSED=1; return 0; }
     sleep 1
   done
   sleep 4
@@ -18,11 +18,12 @@ run_until() {            # run_until <phrase>: start the installer, kill it ~4s 
   kill -9 -- "-$pid" 2>/dev/null; pkill -9 -f "lib/deploy.py" 2>/dev/null; wait "$pid" 2>/dev/null
   return 0
 }
-mkdir -p "$STATE"
+mkdir -p "$STATE"; MISSED=0
 for phrase in "Starting containers" "Jellyfin: setup" "Prowlarr: indexers" "Sonarr + Radarr" "Bazarr: subtitles" "Jellyseerr" "Recyclarr: quality" "Homepage (last"; do
   echo "=== kill point: $phrase"
   run_until "$phrase"
 done
+[ "$MISSED" = 0 ] || { echo "a kill point was missed"; exit 1; }
 echo "=== final run (must succeed)"
 ./install.sh --answers "$ANS" --state-dir "$STATE" 2>&1 | tee "$STATE/resume-final.log"
 test "${PIPESTATUS[0]}" -eq 0

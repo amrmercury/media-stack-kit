@@ -101,6 +101,10 @@ def preflight(a, ports, reconfigure):
         raise StackError("These ports are already in use by something else: " + ", ".join(busy) +
                          ". Stop that program, or set different ports in the answers file ('ports').")
     ok("All needed ports are free")
+    ram = hardware.ram_gb()
+    if ram and ram < 3.5:
+        warn(f"This computer has {ram:.1f} GB of RAM. The stack idles around 2 GB, so it will work, but close other programs "
+             "during the install and expect the first start to be slow.")
     free = hardware.media_fs_free_gb(root)
     if free < 5:
         raise StackError(f"Only {free:.1f} GB free at {root}; need at least 5 GB.")
@@ -145,6 +149,8 @@ def compose_up_with_retries(stack, services, tries=4):
     """Image downloads fail on flaky home networks (and Docker Hub rate-limits). Retry those; fail fast on real errors."""
     for n in range(1, tries + 1):
         try:
+            # at most 3 images are pulled/built at a time: all 13 at once can starve a 4 GB laptop of RAM, CPU and disk I/O
+            os.environ.setdefault("COMPOSE_PARALLEL_LIMIT", "3")
             compose(stack, "up", "-d", "--build", *services, timeout=1800)
             return
         except StackError as e:
@@ -152,6 +158,19 @@ def compose_up_with_retries(stack, services, tries=4):
                 raise
             warn(f"Starting containers hit a network hiccup; retrying ({n}/{tries - 1})...")
             time.sleep(15 * n)
+
+
+def firewall_note():
+    """Other devices (a TV, a phone) reach Jellyfin over the network; an active firewall on this PC would silently block them."""
+    for cmd, active in ((["ufw", "status"], "Status: active"), (["firewall-cmd", "--state"], "running")):
+        try:
+            out = subprocess.run(cmd, capture_output=True, text=True, timeout=5).stdout
+        except (OSError, subprocess.SubprocessError):
+            continue
+        if active in out:
+            return ("This PC's firewall is on, so other devices (TV, phone) may not be able to open Jellyfin. If that happens, "
+                    "allow port 8096 (and 5055 for requests) in your firewall.")
+    return ""
 
 
 # ------------------------------------------------------------------ main flow
@@ -282,6 +301,9 @@ def summary(a, ports, secs):
         print("   2. Subtitles: you skipped them, so Bazarr is a blank slate. Add providers in Bazarr when ready.")
     if not a.get("enable_arabarr"):
         print("   - Arabarr isn't installed (needs an ArabP2P account + a TMDB key). Re-run the installer to add it.")
+    fw = firewall_note()
+    if fw:
+        print("   - " + fw)
     print("   - Playback is direct-play by default. If a device can't play a file, turn transcoding on for\n"
           "     that user in Jellyfin (Dashboard -> Users -> Playback).")
 

@@ -108,4 +108,28 @@ try: deploy.compose_up_with_retries("/s", ["x"]); ok = False
 except StackError: ok = True
 check("a real error (bad compose file) fails at once, no retries", ok and len(tries) == 1)
 
+# --- SELinux (Fedora/RHEL): containers must not be blocked from their config folders
+import collections, render
+ans = json.load(open("/dev/stdin")) if False else {"admin_user": "u", "admin_pass": "p", "media_root": "/m", "stack_dir": "/s", "timezone": "UTC",
+       "debrid": [{"provider": "realdebrid", "api_key": "k"}], "indexer_accounts": {}, "subtitles": {}, "tmdb_api_key": "", "enable_arabarr": False, "cache": {"path": None}, "host_ip": "10.0.0.5"}
+S = collections.defaultdict(lambda: "x")
+pins = json.load(open(os.path.join(common.KIT, "seed/images.json")))
+on = render.build_compose({**ans, "selinux_enforcing": True}, S, pins, 1000, 1000)["services"]
+off = render.build_compose({**ans, "selinux_enforcing": False}, S, pins, 1000, 1000)["services"]
+check("SELinux enforcing: every container opts out of confinement", all("label=disable" in d.get("security_opt", []) for d in on.values()))
+check("SELinux enforcing: options a service already had (e.g. the FUSE one) are kept",
+      all(set(off[n].get("security_opt", [])) <= set(on[n]["security_opt"]) for n in off) and any(len(d.get("security_opt", [])) > 0 for d in off.values()))
+check("SELinux not enforcing: nothing is added", not any("label=disable" in d.get("security_opt", []) for d in off.values()))
+
+# --- the firewall note appears only when a firewall is active
+import subprocess as _sp
+class _R:
+    def __init__(self, out): self.stdout = out
+_real_run = _sp.run
+deploy.subprocess.run = lambda cmd, **k: _R("Status: active" if cmd[0] == "ufw" else "")
+check("an active ufw firewall produces a note about other devices", "firewall is on" in deploy.firewall_note())
+deploy.subprocess.run = lambda cmd, **k: _R("Status: inactive")
+check("no firewall, no note", deploy.firewall_note() == "")
+deploy.subprocess.run = _real_run
+
 print(f"\n{PASS} robustness checks passed")

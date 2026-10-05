@@ -139,6 +139,76 @@ jobs:
           name: diag-resume
           path: diag
 
+  pythons:
+    name: kit code on Python ${{ matrix.py }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        py: ["3.8", "3.10", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.py }}
+      - run: python -m py_compile lib/*.py tools/*.py
+      - run: python tests/test_webui.py
+      - run: python tests/test_bazarr_form.py
+      - run: python tests/test_jellyfin_retry.py
+      - run: python tests/test_robust.py
+
+  distros:
+    name: prerequisites + kit tests on ${{ matrix.image }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ["ubuntu:22.04", "ubuntu:24.04", "debian:12", "fedora:41", "archlinux:latest", "opensuse/tumbleweed:latest"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fresh distro container, normal user: the installer must set up its own tools
+        run: |
+          docker run --rm -v "$PWD:/kit:ro" "${{ matrix.image }}" bash -c '
+            set -e
+            if command -v apt-get >/dev/null; then apt-get update -qq && apt-get install -y -qq sudo >/dev/null
+            elif command -v dnf >/dev/null; then dnf install -y -q sudo shadow-utils >/dev/null
+            elif command -v pacman >/dev/null; then pacman -Sy --noconfirm sudo >/dev/null
+            elif command -v zypper >/dev/null; then zypper --non-interactive install sudo shadow >/dev/null; fi
+            useradd -m tester; echo "tester ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/tester
+            cp -r /kit /home/tester/kit; chown -R tester /home/tester/kit
+            su tester -c "cd ~/kit && STACK_PREREQS_ONLY=1 ./install.sh && python3 -m py_compile lib/*.py && python3 tests/test_webui.py && python3 tests/test_robust.py && python3 tests/test_jellyfin_retry.py"'
+
+  nodocker:
+    name: install on a computer with no Docker at all
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Remove Docker completely (and its group), like a friend's PC
+        shell: bash
+        run: |
+          sudo systemctl stop docker docker.socket containerd 2>/dev/null || true
+          sudo apt-get purge -y -qq docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker.io podman-docker moby-engine moby-cli moby-buildx moby-compose 2>/dev/null || true
+          sudo rm -rf /var/lib/docker /var/lib/containerd /etc/docker "$HOME/.docker"
+          sudo rm -f /usr/bin/docker /usr/local/bin/docker /usr/local/bin/docker-compose /var/run/docker.sock
+          sudo groupdel docker 2>/dev/null || true
+          hash -r
+          ! command -v docker || { echo "docker is still installed"; exit 1; }
+      - name: Fake answers
+        run: python3 tests/ci_answers.py basic "$RUNNER_TEMP/answers.json"
+      - name: Install (must install Docker itself, get the docker group, and finish)
+        shell: bash
+        run: ./install.sh --answers "$RUNNER_TEMP/answers.json" --state-dir "$RUNNER_TEMP/state" 2>&1 | tee "$RUNNER_TEMP/run.log"
+      - name: Collect diagnostics
+        if: always()
+        run: bash tests/ci_diag.sh diag "$RUNNER_TEMP/state"; cp "$RUNNER_TEMP/run.log" diag/ 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: diag-nodocker
+          path: diag
+
   web-ui:
     name: installer page, real browser, real install
     needs: unit

@@ -157,7 +157,19 @@ def build_compose(a, S, pins, puid, pgid):
             "env_file": ["./arabarr.env"], "ports": [f"{ports['arabarr']}:5011"],
             "volumes": [f"{stack}/vendor/arabarr/app.py:/app/app.py:ro",
                         f"{stack}/vendor/arabarr/name_overrides.json:/app/name_overrides.json:ro"]}
+    if a.get("selinux_enforcing", selinux_enforcing()):
+        # Fedora/RHEL: with SELinux enforcing, containers can't read bind-mounted config folders ("permission denied"). Relabelling
+        # a whole media library is slow and fights the FUSE mount, so these containers opt out of SELinux confinement instead.
+        for d in services.values():
+            d["security_opt"] = list(d.get("security_opt", [])) + ["label=disable"]      # keep options a service already has
     return {"name": a.get("project", "media-stack"), "services": services}
+
+
+def selinux_enforcing():
+    try:
+        return open("/sys/fs/selinux/enforce").read().strip() == "1"
+    except OSError:
+        return False
 
 
 # ------------------------------------------------------------------ files

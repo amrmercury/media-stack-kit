@@ -68,6 +68,13 @@ pkg_install() {   # pkg_install <apt-name> <dnf-name> <pacman-name> <zypper-name
   esac
 }
 
+# A laptop that goes to sleep (idle, or lid closed) halfway through an install breaks downloads and app restarts: stay awake.
+if [ -z "${STACK_AWAKE:-}" ] && command -v systemd-inhibit >/dev/null 2>&1 \
+   && systemd-inhibit --what=sleep:idle --mode=block --why=test true >/dev/null 2>&1; then
+  export STACK_AWAKE=1
+  exec systemd-inhibit --what=sleep:idle --who="media-stack installer" --why="Installing the media stack" --mode=block "$0" "$@"
+fi
+
 say "Checking what this machine needs"
 
 # ---------------------------------------------------------------- python3 (>= 3.8)
@@ -84,6 +91,7 @@ command -v ip      >/dev/null || pkg_install iproute2 iproute iproute2 iproute2
 # fusermount3: lets the installer clear a dead debrid mount without root
 command -v fusermount3 >/dev/null || command -v fusermount >/dev/null || pkg_install fuse3 fuse3 fuse3 fuse3
 ok "Helper tools present"
+[ -z "${STACK_PREREQS_ONLY:-}" ] || { ok "prerequisites OK (STACK_PREREQS_ONLY set, stopping here)"; exit 0; }
 
 # ---------------------------------------------------------------- docker
 if ! command -v docker >/dev/null; then

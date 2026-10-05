@@ -27,7 +27,7 @@ class Jellyfin:
         t0 = time.time()
         while True:
             try:
-                r = http(method, f"{self.base}{path}", headers=h, json_body=body, form=form, timeout=timeout)
+                r = http(method, f"{self.base}{path}", headers=h, json_body=body, form=form, timeout=timeout, patience=0)
             except StackError:                       # connection refused / reset while the server restarts: same thing, wait
                 if time.time() - t0 > self.BUSY_WAIT:
                     raise
@@ -75,8 +75,8 @@ class Jellyfin:
                              "This computer may be very busy or low on memory. Click Try again; it is safe to re-run.")
         if not r.ok:
             raise StackError(
-                f"Jellyfin rejected the login '{user}' (HTTP {r.status}). If Jellyfin was set up before with a "
-                f"different password, remove {self.stack_dir}/jellyfin/config and re-run.")
+                f"Jellyfin rejected the login '{user}' (HTTP {r.status}). Jellyfin was probably set up by an earlier attempt with a "
+                f"different username or password. To start clean, run ./uninstall.sh --yes in the installer folder, then ./install.sh.")
         d = r.json()
         self.token, self.user_id = d["AccessToken"], d["User"]["Id"]
 

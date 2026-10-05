@@ -57,9 +57,14 @@ class _NoRedirect(urllib.request.HTTPRedirectHandler):
 _opener_plain = urllib.request.build_opener(_NoRedirect)
 
 
+TRANSIENT_STATUS = (502, 503, 504)      # an app that is (re)starting or still loading answers like this
+
+
 def http(method, url, *, headers=None, json_body=None, form=None, data=None, timeout=30, retries=0,
-         follow_redirects=True):
-    """Tiny HTTP client. Never raises on HTTP status (returns Resp); raises StackError on no connection."""
+         follow_redirects=True, patience=60):
+    """Tiny HTTP client. Never raises on HTTP status (returns Resp); raises StackError on no connection.
+    Apps restart themselves after plugin installs and config changes, and a slow machine takes a long time to come back, so
+    'connection refused / reset' and 502/503/504 are treated as 'not ready yet' and retried for `patience` seconds."""
     hdrs = dict(headers or {})
     body = None
     if json_body is not None:
@@ -70,19 +75,24 @@ def http(method, url, *, headers=None, json_body=None, form=None, data=None, tim
         hdrs.setdefault("Content-Type", "application/x-www-form-urlencoded")
     elif data is not None:
         body = data if isinstance(data, bytes) else data.encode()
-    last = None
-    for attempt in range(retries + 1):
+    last, attempt, t0 = None, 0, time.time()
+    while True:
         req = urllib.request.Request(url, data=body, method=method, headers=hdrs)
         try:
             opener = urllib.request.urlopen if follow_redirects else _opener_plain.open
             with opener(req, timeout=timeout) as r:
                 return Resp(r.status, r.read().decode("utf-8", "replace"), dict(r.headers))
         except urllib.error.HTTPError as e:
-            return Resp(e.code, e.read().decode("utf-8", "replace"), dict(e.headers or {}))
+            resp = Resp(e.code, e.read().decode("utf-8", "replace"), dict(e.headers or {}))
+            if resp.status not in TRANSIENT_STATUS or time.time() - t0 >= patience:
+                return resp
+            last = f"HTTP {resp.status}"
         except (urllib.error.URLError, ConnectionError, TimeoutError, OSError) as e:
             last = e
-            time.sleep(min(2 * (attempt + 1), 8))
-    raise StackError(f"cannot reach {url}: {last}")
+            if attempt >= retries and time.time() - t0 >= patience:
+                raise StackError(f"cannot reach {url}: {last}")
+        attempt += 1
+        time.sleep(min(2 * attempt, 8))
 
 
 def wait_ready(name, check, timeout=300, interval=3):

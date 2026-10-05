@@ -19,6 +19,7 @@ jobs:
       - run: python3 tests/test_webui.py
       - run: python3 tests/test_bazarr_form.py
       - run: python3 tests/test_jellyfin_retry.py
+      - run: python3 tests/test_robust.py
       - run: python3 -m py_compile lib/*.py tools/*.py
       - run: bash -n install.sh && bash -n stack.sh && bash -n diag.sh && bash -n uninstall.sh
       - run: shellcheck -S warning install.sh stack.sh diag.sh uninstall.sh tests/ci_diag.sh || true
@@ -84,6 +85,59 @@ jobs:
           name: diag-install-${{ matrix.case }}
           path: diag
           retention-days: 7
+
+  stress:
+    name: install on a slow, busy machine whose apps keep restarting
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fake answers (full)
+        run: python3 tests/ci_answers.py full "$RUNNER_TEMP/answers.json"
+      - name: Slow the machine down (CPU + memory pressure) and keep restarting apps while installing
+        shell: bash
+        run: |
+          sudo apt-get install -y -qq stress-ng >/dev/null
+          nohup stress-ng --cpu 2 --cpu-load 85 --vm 1 --vm-bytes 1800M --vm-keep --timeout 3000s >/dev/null 2>&1 &
+          rm -f "$RUNNER_TEMP/chaos.stop"
+          nohup bash tests/ci_chaos.sh "$RUNNER_TEMP/chaos.stop" "$RUNNER_TEMP/chaos.log" >/dev/null 2>&1 &
+          set +e
+          ./install.sh --answers "$RUNNER_TEMP/answers.json" --state-dir "$RUNNER_TEMP/state" 2>&1 | tee "$RUNNER_TEMP/stress-run.log"
+          code=${PIPESTATUS[0]}
+          touch "$RUNNER_TEMP/chaos.stop"; sleep 25; cat "$RUNNER_TEMP/chaos.log"
+          exit $code
+      - name: Install again with nothing disturbing it (must be a clean no-op)
+        run: ./install.sh --answers "$RUNNER_TEMP/answers.json" --state-dir "$RUNNER_TEMP/state" 2>&1 | tail -30
+      - name: Collect diagnostics
+        if: always()
+        run: bash tests/ci_diag.sh diag "$RUNNER_TEMP/state"; cp "$RUNNER_TEMP/chaos.log" diag/ 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: diag-stress
+          path: diag
+
+  resume:
+    name: installer killed at every stage, then re-run
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 80
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fake answers (full)
+        run: python3 tests/ci_answers.py full "$RUNNER_TEMP/answers.json"
+      - name: Kill the installer at each stage, re-run each time, finish with a verified install
+        shell: bash
+        run: bash tests/ci_resume.sh "$RUNNER_TEMP/answers.json" "$RUNNER_TEMP/state"
+      - name: Collect diagnostics
+        if: always()
+        run: bash tests/ci_diag.sh diag "$RUNNER_TEMP/state"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: diag-resume
+          path: diag
 
   web-ui:
     name: installer page, real browser, real install

@@ -106,6 +106,54 @@ def preflight(a, ports, reconfigure):
         raise StackError(f"Only {free:.1f} GB free at {root}; need at least 5 GB.")
 
 
+STACK_NAMES = ["decypharr", "prowlarr", "sonarr", "radarr", "bazarr", "flaresolverr", "jellyseerr", "jellyfin", "recyclarr",
+               "pearlarr", "homepage", "babysitarr", "arabarr"]
+
+
+def _repo(image):
+    """'lscr.io/linuxserver/jellyfin@sha256:..' or '...:latest' -> 'lscr.io/linuxserver/jellyfin'"""
+    return image.split("@")[0].rsplit(":", 1)[0] if (":" in image.split("/")[-1] or "@" in image) else image
+
+
+def clear_leftover_containers(a):
+    """A container named like ours (e.g. 'jellyfin') left by an earlier attempt from another folder blocks 'compose up'.
+    If it runs one of OUR images, it is a leftover: remove it. If it is something else, stop and say exactly what to do."""
+    pre = a.get("container_prefix", "")
+    ours = {_repo(v["image"]) for v in load_json(os.path.join(KIT, "seed/images.json")).values()} | {_repo(v["tag"]) for v in load_json(os.path.join(KIT, "seed/images.json")).values()}
+    fmt = "{{.ID}}|{{.Names}}|{{.Image}}|{{.Label \"com.docker.compose.project.working_dir\"}}"
+    out = docker("ps", "-a", "--format", fmt).stdout.splitlines()
+    foreign = []
+    for line in out:
+        cid, name, image, workdir = (line.split("|") + ["", "", "", ""])[:4]
+        if name not in {pre + n for n in STACK_NAMES} or (workdir and os.path.realpath(workdir) == os.path.realpath(a["stack_dir"])):
+            continue
+        if _repo(image) in ours or image.startswith(("media-stack", "stack-")) or "babysitarr" in image or "arabarr" in image:
+            docker("rm", "-f", cid, check=False)
+            info(f"Removed a leftover '{name}' container from an earlier attempt")
+        else:
+            foreign.append(f"{name} (image {image})")
+    if foreign:
+        raise StackError("These containers already use names this stack needs, and they are not from this installer: " +
+                         ", ".join(foreign) + ". If you don't need them, remove them (docker rm -f <name>) and re-run.")
+
+
+TRANSIENT_DOCKER = ("tls handshake", "timeout", "timed out", "eof", "connection reset", "toomanyrequests", "429",
+                    "temporary failure", "no such host", "try again", "unexpected status", "503", "502", "network is unreachable")
+
+
+def compose_up_with_retries(stack, services, tries=4):
+    """Image downloads fail on flaky home networks (and Docker Hub rate-limits). Retry those; fail fast on real errors."""
+    for n in range(1, tries + 1):
+        try:
+            compose(stack, "up", "-d", "--build", *services, timeout=1800)
+            return
+        except StackError as e:
+            if n == tries or not any(t in str(e).lower() for t in TRANSIENT_DOCKER):
+                raise
+            warn(f"Starting containers hit a network hiccup; retrying ({n}/{tries - 1})...")
+            time.sleep(15 * n)
+
+
 # ------------------------------------------------------------------ main flow
 def main():
     ap = argparse.ArgumentParser()
@@ -136,7 +184,8 @@ def main():
     step("Starting containers (the first run downloads images; this can take a few minutes)")
     services = [s for s in render.build_compose(a, S, load_json(os.path.join(KIT, "seed/images.json")), *render.ids())["services"]
                 if s != "arabarr"]
-    compose(stack, "up", "-d", "--build", *services, timeout=1800)
+    clear_leftover_containers(a)
+    compose_up_with_retries(stack, services)
     ok(f"{len(services)} containers started")
 
     L = lambda p: f"http://localhost:{ports[p]}"

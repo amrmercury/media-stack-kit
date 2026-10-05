@@ -166,7 +166,7 @@ jobs:
         image: ["ubuntu:22.04", "ubuntu:24.04", "debian:12", "fedora:41", "archlinux:latest", "opensuse/tumbleweed:latest"]
     steps:
       - uses: actions/checkout@v4
-      - name: Fresh distro container, normal user: the installer must set up its own tools
+      - name: "Fresh distro container, normal user: the installer must set up its own tools"
         run: |
           docker run --rm -v "$PWD:/kit:ro" "${{ matrix.image }}" bash -c '
             set -e

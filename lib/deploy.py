@@ -330,9 +330,17 @@ def main():
     stage("Jellyseerr", lambda: js.configure(a, S, sonarr, radarr, f"http://{a['host_ip']}:{ports['jellyfin']}"))
 
     step("Recyclarr: quality scores")
-    r = compose(stack, "exec", "-T", "recyclarr", "recyclarr", "sync", check=False, timeout=900)
-    (ok if r.returncode == 0 else warn)("Recyclarr synced custom formats and scores" if r.returncode == 0
-                                        else f"Recyclarr sync didn't finish ({r.stderr[-200:]}); it retries daily")
+
+    def recyclarr_sync():
+        r = compose(stack, "exec", "-T", "recyclarr", "recyclarr", "sync", check=False, timeout=900)
+        if r.returncode != 0:
+            raise StackError(f"Recyclarr sync didn't finish ({(r.stderr or r.stdout or '').strip()[-200:]})")
+
+    try:
+        resilient("Recyclarr", recyclarr_sync, settle)        # it talks to Sonarr + Radarr, which may be restarting right now
+        ok("Recyclarr synced custom formats and scores")
+    except StackError as e:
+        warn(f"{e}; it retries daily")
 
     step("Homepage (last, so it lists everything that's running)")
     running = homepage.generate(a, S, jfkey)

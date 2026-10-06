@@ -3,18 +3,20 @@
 #   ./uninstall.sh            shows what it will remove and asks first
 #   ./uninstall.sh --yes      no question
 #   ./uninstall.sh --images   also delete the downloaded Docker images (the next install downloads them again)
+#   ./uninstall.sh --everything   also delete the WHOLE library folder, including any media you put in it (a true clean slate)
 # Removes: the stack's containers + networks, the debrid mount, the settings folder (~/media-stack, including root-owned files),
 # the library folder's decypharr/ and symlinks/ folders (and the library folder itself if that leaves it empty), the cache folder,
-# and this kit's saved answers. It never deletes anything else in your library folder.
+# and this kit's saved answers. Without --everything it never deletes anything else in your library folder.
 set -uo pipefail
 KIT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-STATE_DIR="${STACK_STATE_DIR:-$KIT/state}"; YES=""; IMAGES=""
+STATE_DIR="${STACK_STATE_DIR:-$KIT/state}"; YES=""; IMAGES=""; EVERYTHING=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --yes|-y) YES=1; shift;;
     --images) IMAGES=1; shift;;
+    --everything) EVERYTHING=1; shift;;
     --state-dir) STATE_DIR="${2:?}"; shift 2;;
-    -h|--help) sed -n '2,9p' "$0"; exit 0;;
+    -h|--help) sed -n '2,11p' "$0"; exit 0;;
     *) echo "Unknown option: $1"; exit 1;;
   esac
 done
@@ -55,7 +57,11 @@ safe_path() {   # refuse anything that could be a system or home folder
 echo "${B}This will remove:${N}"
 echo "  - the stack's containers and networks (names: $NAMES${PRE:+, prefix $PRE})"
 echo "  - settings folder:    $STACK"
-[ -n "$MEDIA" ] && echo "  - library folder bits: $MEDIA/decypharr and $MEDIA/symlinks (the folder itself too if it ends up empty)"
+if [ -n "$EVERYTHING" ]; then
+  [ -n "$MEDIA" ] && echo "  - ${R}the WHOLE library folder $MEDIA, including everything in it${N}"
+elif [ -n "$MEDIA" ]; then
+  echo "  - library folder bits: $MEDIA/decypharr and $MEDIA/symlinks (the folder itself too if it ends up empty)"
+fi
 [ -n "$CACHE" ] && echo "  - cache folder:       $CACHE"
 echo "  - saved answers:      $STATE_DIR"
 [ -n "$IMAGES" ] && echo "  - downloaded Docker images of this stack"
@@ -106,8 +112,12 @@ rmtree() {   # delete a folder; use sudo for the root-owned files containers cre
 
 [ "$MOUNT_OK" = 1 ] && rmtree "$STACK"
 if [ -n "$MEDIA" ] && safe_path "$MEDIA" && ! awk -v b="$MEDIA/" 'index($2 "/", b) == 1 {found=1} END {exit !found}' /proc/mounts; then
-  rmtree "$MEDIA/decypharr"; rmtree "$MEDIA/symlinks"
-  rmdir "$MEDIA" 2>/dev/null && ok "removed the empty library folder $MEDIA"
+  if [ -n "$EVERYTHING" ]; then
+    rmtree "$MEDIA"                      # the debrid mount was unmounted above, so nothing here reaches your debrid account
+  else
+    rmtree "$MEDIA/decypharr"; rmtree "$MEDIA/symlinks"
+    rmdir "$MEDIA" 2>/dev/null && ok "removed the empty library folder $MEDIA"
+  fi
 fi
 if [ -n "$CACHE" ] && [ "$(basename "$CACHE")" = "media-stack-cache" ]; then rmtree "$CACHE"; fi
 
@@ -121,4 +131,5 @@ if command -v docker >/dev/null 2>&1; then
   done
 fi
 [ -e "$STACK" ] && { warn "$STACK is still there"; LEFT=1; }
+[ -n "$EVERYTHING" ] && [ -n "$MEDIA" ] && [ -e "$MEDIA" ] && { warn "$MEDIA is still there"; LEFT=1; }
 if [ "$LEFT" = 0 ]; then echo; ok "${B}Everything is removed.${N} Run ./install.sh to start from scratch."; else echo; warn "Something is left (see above)."; exit 1; fi

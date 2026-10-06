@@ -54,8 +54,13 @@ jobs:
         run: |
           export STACK_STATE_DIR="$RUNNER_TEMP/state"
           sudo mkdir -p "$HOME/media-stack/jellyfin/config/data" && sudo touch "$HOME/media-stack/jellyfin/config/data/root-owned.db"
+          mkdir -p "$HOME/ci-media/Movies/Test" && echo "test media" > "$HOME/ci-media/Movies/Test/film.mkv"     # the user's own test media
           ./uninstall.sh --yes 2>&1 | tee "$RUNNER_TEMP/uninstall.log"
+          [ -f "$HOME/ci-media/Movies/Test/film.mkv" ] || { echo "plain uninstall must NOT delete the user's media"; exit 1; }
+          ./install.sh --answers "$RUNNER_TEMP/answers.json" --state-dir "$RUNNER_TEMP/state" > /dev/null 2>&1 || true     # put the stack back
+          ./uninstall.sh --yes --everything 2>&1 | tee "$RUNNER_TEMP/uninstall2.log"
           fail=0
+          [ -e "$HOME/ci-media" ] && { echo "LEFTOVER: the library folder survived --everything"; fail=1; }
           for p in "$HOME/media-stack" "$HOME/ci-media/decypharr" "$HOME/ci-media/symlinks" "$HOME/ci-cache/media-stack-cache" "$STACK_STATE_DIR"; do
             [ -e "$p" ] && { echo "LEFTOVER: $p"; fail=1; }
           done
